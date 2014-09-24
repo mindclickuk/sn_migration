@@ -1,0 +1,29 @@
+---
+defaults: serverbase
+
+# Customer-specific
+customer:
+  email: steve.pawlett@sonova.com
+  siteshortname: learning@Sonova
+  sitefullname: Sonova Learning
+
+codename: ttr2x-sonova
+
+httprot: https
+
+htaccess:
+  username: sonova
+  password: sonova99
+
+staging:
+  host: admliip@stage01.sb.liip.ch:2233
+  wwwroot: sonova.stage01.sb.liip.ch
+
+prod:
+  host: admliip@live02.sb.liip.ch:2233
+  wwwroot: learning.sonova.com
+  redirects:
+  - wwww.learning.sonova.com
+  - sonova.clients.liip.ch
+  - sonova.live02.sb.liip.ch
+#  totara_registrationenabled: true

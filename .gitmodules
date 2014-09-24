@@ -1,0 +1,4 @@
+[submodule "capi"]
+	path = capi
+	url = git@gitlab.liip.ch:elearning/elearning_moodle_capistrano.git
+	branch = master
