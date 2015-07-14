@@ -48,7 +48,12 @@ class rb_cohort_associations_enrolled_embedded extends rb_base_embedded {
             array(
                 'type' => 'associations',
                 'value' => 'programcompletionlink',
-                'heading' => get_string('associationprogramcompletionlink', 'totara_cohort')
+                'heading' => get_string('assignmentduedate', 'totara_program')
+            ),
+            array(
+                'type' => 'associations',
+                'value' => 'programviewduedateslink',
+                'heading' => get_string('actualduedate', 'totara_program')
             ),
             array(
                 'type' => 'associations',

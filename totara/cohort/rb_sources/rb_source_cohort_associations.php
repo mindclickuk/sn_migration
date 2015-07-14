@@ -187,13 +187,26 @@ class rb_source_cohort_associations extends rb_base_source {
         $columnoptions[] = new rb_column_option(
             'associations',
             'programcompletionlink',
-            get_string('associationprogramcompletionlink', 'totara_cohort'),
+            get_string('assignmentduedate', 'totara_program'),
             'base.instanceid',
             array(
                 'displayfunc' => 'programcompletionlink',
                 'extrafields' => array(
                     'type' => 'base.instancetype',
                     'cohortid' => 'base.cohortid'
+                )
+            )
+        );
+        $columnoptions[] = new rb_column_option(
+            'associations',
+            'programviewduedateslink',
+            get_string('actualduedate', 'totara_program'),
+            'base.id',
+            array(
+                'displayfunc' => 'programviewduedatelink',
+                'extrafields' => array(
+                    'type' => 'base.instancetype',
+                    'programid' => 'base.instanceid'
                 )
             )
         );
@@ -369,13 +382,12 @@ class rb_source_cohort_associations extends rb_base_source {
     }
 
     /**
-     * Helper function to display the "Set completion date" link for a program (should only be used with enrolled items)
+     * Helper function to display the "Set due date" link for a program (should only be used with enrolled items)
      * @param $instanceid
      * @param $row
+     * @return string
      */
     public function rb_display_programcompletionlink($instanceid, $row) {
-        global $DB;
-
         static $canedit = null;
         if ($canedit === null) {
             $canedit = has_capability('moodle/cohort:manage', context_system::instance());
@@ -383,6 +395,27 @@ class rb_source_cohort_associations extends rb_base_source {
 
         if ($canedit && ($row->type == COHORT_ASSN_ITEMTYPE_PROGRAM || $row->type == COHORT_ASSN_ITEMTYPE_CERTIF)) {
             return totara_cohort_program_completion_link($row->cohortid, $instanceid);
+        }
+        return get_string('na', 'totara_cohort');
+    }
+
+    /**
+     * Helper function to display the "View date" link for a program (should only be used with enrolled items)
+     * @param $assignmentid
+     * @param $row
+     * @return string
+     */
+    public function rb_display_programviewduedatelink($assignmentid, $row) {
+        static $canedit = null;
+        if ($canedit === null) {
+            $canedit = has_capability('moodle/cohort:manage', context_system::instance());
+        }
+
+        if ($canedit && ($row->type == COHORT_ASSN_ITEMTYPE_PROGRAM || $row->type == COHORT_ASSN_ITEMTYPE_CERTIF)) {
+            $viewsql = new moodle_url('/totara/program/assignment/duedates_report.php',
+                array('programid' => $row->programid, 'assignmentid' => $assignmentid));
+            return html_writer::link($viewsql, get_string('viewdates', 'totara_program'),
+                array('class' => 'assignment-duedates'));
         }
         return get_string('na', 'totara_cohort');
     }

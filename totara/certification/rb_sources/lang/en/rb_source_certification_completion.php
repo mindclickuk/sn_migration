@@ -22,6 +22,7 @@
  * @subpackage certification
  */
 
+$string['hasnevercertified'] = 'Has never certified';
 $string['iscertified'] = 'Is certified';
 $string['isnotcertified'] = 'Is not certified';
 $string['sourcetitle'] = 'Certification Completion';

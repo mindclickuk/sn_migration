@@ -161,6 +161,20 @@ class rb_source_certification_completion extends rb_source_program_completion {
                 'defaultheading' => get_string('isnotstarted', 'rb_source_program_completion'),
             )
         );
+        $columnoptions[] = new rb_column_option(
+            'certcompletion',
+            'hasnevercertified',
+            get_string('hasnevercertified', 'rb_source_certification_completion'),
+            'CASE WHEN certif_completion.status = ' . CERTIFSTATUS_ASSIGNED . ' OR
+                       (certif_completion.status = ' . CERTIFSTATUS_INPROGRESS . ' AND
+                        certif_completion.renewalstatus = ' . CERTIFRENEWALSTATUS_NOTDUE . ') THEN 1 ELSE 0 END',
+            array(
+                'joins' => 'certif_completion',
+                'displayfunc' => 'yes_or_no',
+                'dbdatatype' => 'boolean',
+                'defaultheading' => get_string('hasnevercertified', 'rb_source_certification_completion'),
+            )
+        );
 
         return $columnoptions;
     }

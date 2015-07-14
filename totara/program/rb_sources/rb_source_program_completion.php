@@ -119,6 +119,12 @@ class rb_source_program_completion extends rb_base_source {
                 'completion_position.id = base.positionid',
                 REPORT_BUILDER_RELATION_ONE_TO_ONE
             ),
+            new rb_join(
+                'prog_user_assignment',
+                'LEFT',
+                '{prog_user_assignment}',
+                'prog_user_assignment.programid = base.programid AND prog_user_assignment.userid = base.userid'
+            ),
         );
 
         $this->add_user_table_to_joinlist($joinlist, 'base', 'userid');
@@ -495,6 +501,11 @@ class rb_source_program_completion extends rb_base_source {
             new rb_param_option(
                 'userid',
                 'base.userid'
+            ),
+            new rb_param_option(
+                'assignmentid',
+                'prog_user_assignment.assignmentid',
+                'prog_user_assignment'
             ),
         );
         return $paramoptions;

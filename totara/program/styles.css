@@ -259,14 +259,14 @@ div#prog-completion-relative-date label {
  */
 #assignment_categories .assignment_category td.col0,
 #assignment_categories .assignment_category th.col0 {
-    width: 410px;
+    width: 180px;
 }
 
 
 #assignment_categories .assignment_category td.col1,
 #assignment_categories .assignment_category th.col1 {
     text-align: center;
-    width: 100px;
+    width: 60px;
 }
 
 #assignment_categories .assignment_category td.col2,
@@ -274,22 +274,19 @@ div#prog-completion-relative-date label {
     width: 170px;
 }
 
-#assignment_categories .assignment_category.individuals td.col2,
-#assignment_categories .assignment_category.individuals th.col2 {
-    width: 270px;
-}
-
 #assignment_categories .assignment_category td.col3,
 #assignment_categories .assignment_category th.col3 {
     width: 80px;
 }
 
-#assignment_categories .assignment_category td.col3 {
-    text-align: right;
+#assignment_categories .assignment_category.individuals td.col3,
+#assignment_categories .assignment_category.individuals th.col3 {
+    width: 150px;
 }
 
-.dir-rtl #assignment_categories .assignment_category td.col3 {
-    text-align: left;
+#assignment_categories .assignment_category td.col4,
+#assignment_categories .assignment_category th.col4 {
+    width: 60px;
 }
 
 #assignment_categories .assignment_category td,
@@ -305,39 +302,17 @@ div#prog-completion-relative-date label {
     margin-bottom: 5px;
 }
 
-#assignment_categories .assignment_category td.col1,
-#assignment_categories .assignment_category th.col1 {
+#assignment_categories .assignment_category td,
+#assignment_categories .assignment_category th {
     border-left: 1px solid #2e2e2e;
-    border-right: 0px solid;
 }
-
-.dir-rtl #assignment_categories .assignment_category td.col1,
-.dir-rtl #assignment_categories .assignment_category th.col1 {
-    border-right: 1px solid #2e2e2e;
+.dir-ltr #assignment_categories .assignment_category td:first-child,
+.dir-ltr #assignment_categories .assignment_category th:first-child {
     border-left: 0px solid;
 }
 
-#assignment_categories .assignment_category td.col2,
-#assignment_categories .assignment_category th.col2 {
-    border-left: 1px solid #2e2e2e;
-    border-right: 0px solid;
-}
-
-.dir-rtl #assignment_categories .assignment_category td.col2,
-.dir-rtl #assignment_categories .assignment_category th.col2 {
-    border-right: 1px solid #2e2e2e;
-    border-left: 0px solid;
-}
-
-#assignment_categories .assignment_category td.col3,
-#assignment_categories .assignment_category th.col3 {
-    border-left: 1px solid #2e2e2e;
-    border-right: 0px solid;
-}
-
-.dir-rtl #assignment_categories .assignment_category td.col3,
-.dir-rtl #assignment_categories .assignment_category th.col3 {
-    border-right: 1px solid #2e2e2e;
+.dir-rtl #assignment_categories .assignment_category td:last-child,
+.dir-rtl #assignment_categories .assignment_category th:last-child {
     border-left: 0px solid;
 }
 

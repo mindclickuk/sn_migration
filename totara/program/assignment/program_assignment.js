@@ -29,6 +29,7 @@ M.totara_programassignment = M.totara_programassignment || {
 
     // reference to dialogs
     totaraDialog_program_cat: null,
+    datesDialogue: null,
 
     /**
      * module initialisation method called by php js_init_call()
@@ -378,6 +379,56 @@ M.totara_programassignment = M.totara_programassignment || {
                 }
             });
 
+            return false;
+        });
+
+        // On click event for "View dates" links.
+        $('.assignment-duedates').on('click', function(){
+            $.get($(this).attr('href'), function(result){
+                M.totara_programassignment.datesDialogue = new M.core.dialogue({
+                    headerContent: null,
+                    bodyContent  : result,
+                    width        : 900,
+                    centered     : true,
+                    modal        : false,
+                    render       : true
+                });
+                M.totara_programassignment.datesDialogue.show();
+            });
+            return false;
+        });
+
+        // On click events for column sorting and paging inside "View dates" popup.
+        $('#page-totara-program-edit_assignments').on('click',
+            '.moodle-dialogue-content #program_assignment_duedates a, ' +
+            '.moodle-dialogue-content #cert_assignment_duedates a', function(event) {
+            if (!event.target.closest('td') || !$(event.target.closest('td')).hasClass('cell')) {
+                $.get($(event.target).attr('href'), function(result) {
+                    M.totara_programassignment.datesDialogue.bodyNode.setHTML(result);
+                });
+            } else {
+                window.open($(event.target).attr('href'));
+            }
+            return false;
+        });
+
+        // On click of submit button events for forms inside "View dates" popup.
+        $('#page-totara-program-edit_assignments').on('click',
+            '.moodle-dialogue-content form input:submit', function(event) {
+            var form = $(this).closest('form');
+            var data = form.serializeArray();
+            data.push({ name: $(this).attr('name'), value: $(this).val() });
+            $.ajax({
+                url     : form.attr('action'),
+                type    : form.attr('method'),
+                data    : data,
+                success : function(result) {
+                    M.totara_programassignment.datesDialogue.bodyNode.setHTML(result);
+                },
+                error   : function(xhr, err) {
+                    alert('Error trying to load submitted report form by ajax');
+                }
+            });
             return false;
         });
 

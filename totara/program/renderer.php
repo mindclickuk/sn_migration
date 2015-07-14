@@ -141,10 +141,8 @@ class totara_program_renderer extends plugin_renderer_base {
         $colcount = 0;
         // Add the headers
         foreach ($headers as $header) {
-            $headerclassstr = strtolower(str_replace(' ', '', $header));
-            $headerclassstr = strtolower(str_replace('#', '', $headerclassstr));
             $cell = new html_table_cell($header);
-            $cell->attributes['class'] = $headerclassstr.' col'.$colcount;
+            $cell->attributes['class'] = 'col'.$colcount;
             $table->head[] = $cell;
             $colcount++;
         }

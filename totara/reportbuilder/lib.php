@@ -1767,7 +1767,7 @@ class reportbuilder {
 
         require_once($CFG->dirroot . '/totara/reportbuilder/report_forms.php');
         $mformstandard = new report_builder_standard_search_form($this->get_current_url(),
-                array('fields' => $this->get_standard_filters()));
+                array('fields' => $this->get_standard_filters()), 'post', '', array('class' => 'rb-search'));
         $mformstandard->display();
     }
 
@@ -5713,6 +5713,11 @@ function reportbuilder_create_embedded_record($shortname, $embed, &$error) {
     $todb->embedded = 1;
     $todb->defaultsortcolumn = $embed->defaultsortcolumn;
     $todb->defaultsortorder = $embed->defaultsortorder;
+
+    if (isset($embed->recordsperpage)) {
+        $todb->recordsperpage = $embed->recordsperpage;
+    }
+
     // Note: embedded reports are not expected to have global restrictions for performance reasons.
     $todb->globalrestriction = reportbuilder::GLOBAL_REPORT_RESTRICTIONS_DISABLED;
 

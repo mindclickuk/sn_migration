@@ -22,6 +22,7 @@
  */
 
 $string['action'] = 'Action';
+$string['actualduedate'] = 'Actual due date';
 $string['addcohortstoprogram'] = 'Add audiences to program';
 $string['addcohorttoprogram'] = 'Add audience to program';
 $string['addcompetency'] = 'Add competency';
@@ -98,6 +99,7 @@ $string['assignedasindividual'] = 'Assigned as an individual.';
 $string['assignindividual'] = '{$a->fullname} ({$a->email})';
 $string['assignmentcriterialearner'] = 'You are required to complete this program under the following criteria:';
 $string['assignmentcriteriamanager'] = 'The learner is required to complete this program under the following criteria:';
+$string['assignmentduedate'] = 'Assignment due date';
 $string['assignments'] = 'Assignments';
 $string['assignmentsdeferred'] = 'Program assignment changes have been deferred and will be applied during the next cron run';
 $string['assignmentsdeferredtask'] = 'Deferred program assignments changes';
@@ -242,6 +244,7 @@ $string['details'] = 'Details';
 $string['directteam'] = 'direct team';
 $string['dismissandtakenoaction'] = 'Dismiss and take no action';
 $string['duedate'] = 'Due date';
+$string['duedatecanbechanged'] = 'Can be changed';
 $string['duedatenotset'] = 'No due date set';
 $string['duestatus'] = 'Due/Status';
 $string['duplicatecourse'] = 'Already assigned to a different certification that contains one of the same courses used in this certification';
@@ -379,6 +382,28 @@ $string['fullname'] = 'Full name';
 $string['grant'] = 'Grant';
 $string['grantdeny'] = 'Grant / Deny';
 $string['grantextensionrequest'] = 'Grant extension request';
+$string['groupactualduedate'] = 'Group assignment due date';
+$string['groupactualduedate_help'] = '<p>Use the "Assignment due date" column to assign a due date to the group of users.</p>
+<p>Due dates for assigned users can only be increased. If an earlier assignment due date is applied to a user who already has
+a due date set, then the earlier date will not be applied to the user.</p>
+<p>If a fixed due date is set, the date change will be applied immediately.</p>
+<p>If a relative due date is set, the due date will be applied to the users as soon as it can be successfully determined.</p>
+<p>The assignment due date will be assigned to other users as they join the group.</p>
+<p>The actual due date cannot be changed if this is a program and the user has already completed it, or if this is a certification
+and the due date has automatically been updated after the user completed certification.</p>
+Users\' actual due dates may differ from the assignment due date for various reasons, including:
+
+* if another assignment type includes the same user, the other assignment due date may override this one
+* if this assignment has a relative due date, which is not yet applicable to the user
+* a user may have been granted an extension by a manager
+* if an exception occurred and the "Set realistic time allowance" action was used to resolve it
+* this assignment due date may have changed, but the user still has the due date that was originally given to them
+* this is a certification, and the due date has automatically been set to the expiration date
+
+NOTE: Assignment due dates are recorded when you press the "Save changes" button, but are not applied until the user assignments
+are updated. If you see a message indicating that user assignments have been deferred then any user due date changes will
+not yet be applied.
+';
 $string['header:hash'] = '#';
 $string['header:id'] = 'ID';
 $string['header:issue'] = 'Issue';
@@ -390,13 +415,34 @@ $string['icon'] = 'Icon';
 $string['idnumberprogram'] = 'ID';
 $string['incomplete'] = 'Not complete';
 $string['incompletecourse'] = 'Course marked as incomplete';
+$string['individualactualduedate'] = 'Individual assignment due date';
+$string['individualactualduedate_help'] = '<p>Use the "Assignment due date" column to assign a due date to the individual.</p>
+<p>Due dates for assigned users can only be increased. If an earlier assignment due date is applied to a user who already has
+a due date set, then the earlier date will not be applied to the user.</p>
+<p>If a fixed due date is set, the date change will be applied immediately.</p>
+<p>If a relative due date is set, the due date will be applied to the user as soon as it can be successfully determined.</p>
+<p>The actual due date cannot be changed if this is a program and the user has already completed it, or if this is a certification
+and the due date has automatically been updated after the user completed certification.</p>
+Users\' actual due dates may differ from the assignment due date for various reasons, including:
+
+* if another assignment type includes the same user, the other assignment due date may override this one
+* if this assignment has a relative due date, which is not yet applicable to the user
+* a user may have been granted an extension by a manager
+* if an exception occurred and the "Set realistic time allowance" action was used to resolve it
+* this assignment due date may have changed, but the user still has the due date that was originally given to them
+* this is a certification, and the due date has automatically been set to the expiration date
+
+NOTE: Assignment due dates are recorded when you press the "Save changes" button, but are not applied until the user assignments
+are updated. If you see a message indicating that user assignments have been deferred then any user due date changes will
+not yet be applied.
+';
 $string['individualname'] = 'Individual name';
 $string['individuals'] = 'Individuals';
 $string['individuals_category'] = 'individual(s)';
 $string['infinity'] = 'No time limit';
 $string['instructions:assignments1'] = 'Categories can be used to assign the program to sets of learners.';
 $string['instructions:messages1'] = 'Configure event and reminder triggers associated with the program.';
-$string['instructions:programassignments'] = 'Assign learners on-mass and set fixed or relative completion criteria <br />(Assign learners by organisation, position, audience, hierarchy or individual)';
+$string['instructions:programassignments'] = 'Assign learners on-mass and set fixed or relative completion criteria';
 $string['instructions:programcontent'] = 'Define the program content by adding sets of courses and / or competencies';
 $string['instructions:programdetails'] = 'Define the program name, availability and description';
 $string['instructions:programexceptions'] = 'Quickly resolve assignment issues by selecting \'type\' and applying an \'action\'';
@@ -601,6 +647,8 @@ $string['notavailable'] = 'Not available';
 $string['notifymanager'] = 'Send notice to manager';
 $string['notifymanager_help'] = 'Check this box if you also want to send a notice to the message recipient\'s manager.';
 $string['notmanager'] = 'You are not a manager';
+$string['notyetknown'] = 'Not yet known';
+$string['notyetset'] = 'Not yet set';
 $string['nouserextensions'] = '{$a} does not have any pending extension requests';
 $string['novalidprograms'] = 'No valid programs';
 $string['numberofprograms'] = 'Number of programs';
@@ -665,6 +713,7 @@ $string['program:viewhiddenprograms'] = 'View hidden programs';
 $string['program:viewprogram'] = 'View programs';
 $string['program:visibility'] = 'Hide/show programs';
 $string['programadministration'] = 'Program Administration';
+$string['programassignmentduedates'] = 'Program assignment due dates';
 $string['programassignments'] = 'Program assignments';
 $string['programassignmentsdeferred'] = 'Program assignment changes have been saved, but users will not see the changes until after the next cron run';
 $string['programassignmentssaved'] = 'Program assignments saved successfully';
@@ -762,6 +811,7 @@ $string['recurringprogramhistory'] = 'History record for recurring program {$a}'
 $string['recurringprogramhistoryfor'] = 'History record for {$a->username} for recurring program {$a->progname}';
 $string['recurringprograms'] = 'Recurring programs';
 $string['removecompletiondate'] = 'Remove completion date';
+$string['removeduedate'] = 'Remove due date';
 $string['removed'] = 'Removed';
 $string['repeatevery'] = 'Repeat every';
 $string['requestextension'] = '(Request an extension)';
@@ -783,6 +833,7 @@ $string['selectcompetency'] = 'Select a competency...';
 $string['selectcourse'] = 'Select a course...';
 $string['sendmessagestask'] = 'Send messages related to programs';
 $string['setcompletion'] = 'Set completion';
+$string['setduedate'] = 'Set due date';
 $string['setfixedcompletiondate'] = 'Set fixed completion date';
 $string['setlabel'] = 'Course set label';
 $string['setlabel_help'] = 'Use the course set label to describe the grouping of courses within the set.
@@ -808,6 +859,8 @@ $string['therearenoprogramstodisplay'] = 'There are no programs to display.';
 $string['thisactioncannotbeundone'] = 'This action cannot be undone';
 $string['thiswillaffect'] = 'This will affect {$a} learners';
 $string['timeallowance'] = 'Time allowance';
+$string['timeduefixedcert'] = 'Cannot change - set automatically';
+$string['timeduefixedprog'] = 'Cannot change - user complete';
 $string['timeperiod'] = 'Time period';
 $string['toprogram'] = 'to program';
 $string['tosaveassignments'] = 'To save all assignment changes click \'Save all changes\'. To edit assignment changes click \'Edit assignments\'. Saving assignments cannot be undone.';
@@ -818,6 +871,7 @@ $string['totalassignments'] = 'Total potential assignments';
 $string['totalassignments_help'] = 'The total number of assignments that is displayed in the program assignments page and the overview page represents the total number of learners in all the assigned categories and not the number of learners currently assigned to the program.
 
 If a learner belongs to an organisation that is assigned to the program and also holds a position that is assigned to the program then the learner will be counted in each category (but will only be assigned to the program once).';
+$string['totalusersinassignment'] = 'Number of users in this assignment: {$a}';
 $string['trigger'] = 'Trigger';
 $string['trigger_help'] = 'The trigger time determines when the message will be sent in relation to the event described (e.g. 4 weeks after the program is completed).';
 $string['type'] = 'Type';
@@ -869,6 +923,7 @@ In program messages, certain variables can be inserted into the subject and/or b
 $string['viewallprograms'] = 'View all programs';
 $string['viewallrequiredlearning'] = 'View all';
 $string['viewcourse'] = 'View course';
+$string['viewdates'] = 'View dates';
 $string['viewexceptions'] = 'View exception report to resolve issue(s).';
 $string['viewinguserextrequests'] = 'Viewing extension requests for {$a}';
 $string['viewingxusersprogram'] = 'You are viewing <a href="{$a->wwwroot}/user/view.php?id={$a->id}">{$a->fullname}\'s</a> progress on this program.';

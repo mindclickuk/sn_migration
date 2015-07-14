@@ -604,10 +604,11 @@ abstract class prog_assignment_category {
     abstract function get_includechildren($data, $object);
 
     function get_completion($item, $programid = null) {
-        global $CFG, $OUTPUT;
-        $completion_string = get_string('setcompletion', 'totara_program');
+        global $OUTPUT;
+        $completion_string = get_string('setduedate', 'totara_program');
 
         $show_deletecompletionlink = false;
+
         if (empty($item->completiontime)) {
             $item->completiontime = COMPLETION_TIME_NOT_SET;
         }
@@ -626,7 +627,8 @@ abstract class prog_assignment_category {
                 // Print a date.
                 $item->completiontime = trim(userdate($item->completiontime,
                     get_string('datepickerlongyearphpuserdate', 'totara_core'), 99, false));
-                $completion_string = self::build_completion_string($item->completiontime, $item->completionevent, $item->completioninstance);
+                $completion_string = self::build_completion_string(
+                    $item->completiontime, $item->completionevent, $item->completioninstance);
                 $show_deletecompletionlink = true;
             }
         } else {
@@ -651,9 +653,11 @@ abstract class prog_assignment_category {
                 'name' => 'completioninstance['.$this->id.']['.$item->id.']', 'value' => $item->completioninstance));
         }
         $html .= html_writer::link('#', $completion_string, array('class' => 'completionlink'));
-        $html .= html_writer::empty_tag('input', array('type' => 'hidden', 'class' => 'completetionprogramid', 'value' => $programid));
+        $html .= html_writer::empty_tag('input',
+            array('type' => 'hidden', 'class' => 'completionprogramid', 'value' => $programid));
         if ($show_deletecompletionlink) {
-            $html .= $OUTPUT->action_icon('#', new pix_icon('t/delete', get_string('removecompletiondate', 'totara_program')), null, array('class' => 'deletecompletiondatelink'));
+            $html .= $OUTPUT->action_icon('#', new pix_icon('t/delete', get_string('removeduedate', 'totara_program')), null,
+                array('class' => 'deletecompletiondatelink'));
         }
         html_writer::end_tag('div');
         return $html;
@@ -735,18 +739,23 @@ class organisations_category extends prog_assignment_category {
     }
 
     function build_table($programid) {
-        global $DB;
+        global $DB, $OUTPUT;
 
         $this->headers = array(
             get_string('organisationname', 'totara_program'),
             get_string('allbelow', 'totara_program'),
-            get_string('complete','totara_program'),
-            get_string('numlearners','totara_program')
+            get_string('assignmentduedate', 'totara_program'),
+            get_string('actualduedate', 'totara_program') .
+                $OUTPUT->help_icon('groupactualduedate', 'totara_program', null),
+            get_string('numlearners', 'totara_program')
         );
 
         // Go to the database and gets the assignments
         $items = $DB->get_records_sql(
-            "SELECT org.id, org.fullname, org.path, prog_assignment.includechildren, prog_assignment.completiontime, prog_assignment.completionevent, prog_assignment.completioninstance
+            "SELECT org.id, org.fullname, org.path,
+                    prog_assignment.programid, prog_assignment.id AS assignmentid,
+                    prog_assignment.includechildren, prog_assignment.completiontime,
+                    prog_assignment.completionevent, prog_assignment.completioninstance
         FROM {prog_assignment} prog_assignment
         INNER JOIN {org} org on org.id = prog_assignment.assignmenttypeid
         WHERE prog_assignment.programid = ?
@@ -777,6 +786,14 @@ class organisations_category extends prog_assignment_category {
         $row[] = $this->build_first_table_cell($item->fullname, $this->id, $item->id);
         $row[] = html_writer::checkbox('includechildren['.$this->id.']['.$item->id.']', '', $checked);
         $row[] = $this->get_completion($item);
+        if (isset($item->programid)) {
+            $viewsql = new moodle_url('/totara/program/assignment/duedates_report.php',
+                array('programid' => $item->programid, 'assignmentid' => $item->assignmentid));
+            $row[] = html_writer::link($viewsql, get_string('viewdates', 'totara_program'),
+                array('class' => 'assignment-duedates'));
+        } else {
+            $row[] = get_string('notyetset', 'totara_program');
+        }
         $row[] = $this->user_affected_count($item);
 
         return $row;
@@ -884,17 +901,22 @@ class positions_category extends prog_assignment_category {
     }
 
     function build_table($programid) {
-        global $DB;
+        global $DB, $OUTPUT;
         $this->headers = array(
             get_string('positionsname', 'totara_program'),
             get_string('allbelow', 'totara_program'),
-            get_string('complete','totara_program'),
-            get_string('numlearners','totara_program')
+            get_string('assignmentduedate', 'totara_program'),
+            get_string('actualduedate', 'totara_program') .
+                $OUTPUT->help_icon('groupactualduedate', 'totara_program', null),
+            get_string('numlearners', 'totara_program')
         );
 
         // Go to the database and gets the assignments
         $items = $DB->get_records_sql(
-            "SELECT pos.id, pos.fullname, pos.path, prog_assignment.includechildren, prog_assignment.completiontime, prog_assignment.completionevent, prog_assignment.completioninstance
+            "SELECT pos.id, pos.fullname, pos.path,
+                    prog_assignment.programid, prog_assignment.id AS assignmentid,
+                    prog_assignment.includechildren, prog_assignment.completiontime,
+                    prog_assignment.completionevent, prog_assignment.completioninstance
                FROM {prog_assignment} prog_assignment
          INNER JOIN {pos} pos on pos.id = prog_assignment.assignmenttypeid
               WHERE prog_assignment.programid = ?
@@ -922,6 +944,14 @@ class positions_category extends prog_assignment_category {
         $row[] = $this->build_first_table_cell($item->fullname, $this->id, $item->id);
         $row[] = html_writer::checkbox('includechildren['.$this->id.']['.$item->id.']', '', $checked);
         $row[] = $this->get_completion($item);
+        if (isset($item->programid)) {
+            $viewsql = new moodle_url('/totara/program/assignment/duedates_report.php',
+                array('programid' => $item->programid, 'assignmentid' => $item->assignmentid));
+            $row[] = html_writer::link($viewsql, get_string('viewdates', 'totara_program'),
+                array('class' => 'assignment-duedates'));
+        } else {
+            $row[] = get_string('notyetset', 'totara_program');
+        }
         $row[] = $this->user_affected_count($item);
 
         return $row;
@@ -1031,17 +1061,21 @@ class cohorts_category extends prog_assignment_category {
     }
 
     function build_table($programid) {
-        global $DB;
+        global $DB, $OUTPUT;
         $this->headers = array(
             get_string('cohortname', 'totara_program'),
             get_string('type', 'totara_program'),
-            get_string('complete','totara_program'),
-            get_string('numlearners','totara_program')
+            get_string('assignmentduedate', 'totara_program'),
+            get_string('actualduedate', 'totara_program') .
+                $OUTPUT->help_icon('groupactualduedate', 'totara_program', null),
+            get_string('numlearners', 'totara_program')
         );
 
         // Go to the database and gets the assignments.
         $items = $DB->get_records_sql(
-            "SELECT cohort.id, cohort.name as fullname, cohort.cohorttype, prog_assignment.completiontime, prog_assignment.completionevent, prog_assignment.completioninstance
+            "SELECT cohort.id, cohort.name as fullname, cohort.cohorttype,
+                    prog_assignment.programid, prog_assignment.id AS assignmentid,
+                    prog_assignment.completiontime, prog_assignment.completionevent, prog_assignment.completioninstance
             FROM {prog_assignment} prog_assignment
             INNER JOIN {cohort} cohort ON cohort.id = prog_assignment.assignmenttypeid
             WHERE prog_assignment.programid = ?
@@ -1076,6 +1110,14 @@ class cohorts_category extends prog_assignment_category {
         $row[] = $this->build_first_table_cell($item->fullname, $this->id, $item->id);
         $row[] = $cohortstring;
         $row[] = $this->get_completion($item);
+        if (isset($item->programid)) {
+            $viewsql = new moodle_url('/totara/program/assignment/duedates_report.php',
+                array('programid' => $item->programid, 'assignmentid' => $item->assignmentid));
+            $row[] = html_writer::link($viewsql, get_string('viewdates', 'totara_program'),
+                    array('class' => 'assignment-duedates'));
+        } else {
+            $row[] = get_string('notyetset', 'totara_program');
+        }
         $row[] = $this->user_affected_count($item);
 
         return $row;
@@ -1142,20 +1184,23 @@ class managers_category extends prog_assignment_category {
     }
 
     function build_table($programid) {
-        global $DB;
+        global $DB, $OUTPUT;
         $this->headers = array(
             get_string('managername', 'totara_program'),
             get_string('for', 'totara_program'),
-            get_string('complete','totara_program'),
-            get_string('numlearners','totara_program')
+            get_string('assignmentduedate', 'totara_program'),
+            get_string('actualduedate', 'totara_program') .
+                $OUTPUT->help_icon('groupactualduedate', 'totara_program', null),
+            get_string('numlearners', 'totara_program')
         );
 
         // Go to the database and gets the assignments.
         $usernamefields = get_all_user_name_fields(true, 'u');
         $items = $DB->get_records_sql("
             SELECT u.id, " . $usernamefields . ", pa.managerpath AS path,
-            prog_assignment.includechildren, prog_assignment.completiontime,
-                prog_assignment.completionevent, prog_assignment.completioninstance
+                   prog_assignment.programid, prog_assignment.id AS assignmentid,
+                   prog_assignment.includechildren, prog_assignment.completiontime,
+                   prog_assignment.completionevent, prog_assignment.completioninstance
               FROM {prog_assignment} prog_assignment
         INNER JOIN {user} u ON u.id = prog_assignment.assignmenttypeid
          LEFT JOIN {pos_assignment} pa ON pa.userid = u.id AND pa.type = ?
@@ -1210,6 +1255,14 @@ class managers_category extends prog_assignment_category {
         $row[] = $this->build_first_table_cell($item->fullname, $this->id, $item->id);
         $row[] = html_writer::select($options, 'includechildren['.$this->id.']['.$item->id.']', $selectedid);
         $row[] = $this->get_completion($item);
+        if (isset($item->programid)) {
+            $viewsql = new moodle_url('/totara/program/assignment/duedates_report.php',
+                array('programid' => $item->programid, 'assignmentid' => $item->assignmentid));
+            $row[] = html_writer::link($viewsql, get_string('viewdates', 'totara_program'),
+                array('class' => 'assignment-duedates'));
+        } else {
+            $row[] = get_string('notyetset', 'totara_program');
+        }
         $row[] = $this->user_affected_count($item);
 
         return $row;
@@ -1298,20 +1351,31 @@ class individuals_category extends prog_assignment_category {
     }
 
     function build_table($programid) {
-        global $DB;
+        global $DB, $OUTPUT;
         $this->headers = array(
             get_string('individualname', 'totara_program'),
             get_string('userid', 'totara_program'),
-            get_string('complete','totara_program')
+            get_string('assignmentduedate', 'totara_program'),
+            get_string('actualduedate', 'totara_program') .
+                $OUTPUT->help_icon('individualactualduedate', 'totara_program', null),
         );
 
         // Go to the database and gets the assignments.
 
         $usernamefields = get_all_user_name_fields(true, 'individual');
         $items = $DB->get_records_sql(
-            "SELECT individual.id, " . $usernamefields . ", prog_assignment.completiontime, prog_assignment.completionevent, prog_assignment.completioninstance
+            "SELECT individual.id, " . $usernamefields . ", prog.id AS progid, prog.certifid, pc.timedue, pc.status AS progstatus,
+                    cc.certifpath, cc.renewalstatus,
+                    prog_assignment.completiontime, prog_assignment.completionevent, prog_assignment.completioninstance
                FROM {prog_assignment} prog_assignment
-         INNER JOIN {user} individual ON individual.id = prog_assignment.assignmenttypeid
+               JOIN {user} individual
+                 ON individual.id = prog_assignment.assignmenttypeid
+               JOIN {prog} prog
+                 ON prog.id = prog_assignment.programid
+          LEFT JOIN {prog_completion} pc
+                 ON pc.programid = prog_assignment.programid AND pc.userid = individual.id AND pc.coursesetid = 0
+          LEFT JOIN {certif_completion} cc
+                 ON cc.certifid = prog.certifid AND cc.userid = pc.userid
               WHERE prog_assignment.programid = ?
                 AND prog_assignment.assignmenttype = ?", array($programid, $this->id));
 
@@ -1335,8 +1399,6 @@ class individuals_category extends prog_assignment_category {
     }
 
     function build_row($item) {
-        global $OUTPUT;
-
         if (is_int($item)) {
             $item = $this->get_item($item);
         }
@@ -1344,7 +1406,41 @@ class individuals_category extends prog_assignment_category {
         $row = array();
         $row[] = $this->build_first_table_cell($item->fullname, $this->id, $item->id);
         $row[] = $item->id;
-        $row[] = $this->get_completion($item);
+        if (isset($item->progid)) {
+            $isprog = empty($item->certifid);
+            if ($isprog && $item->progstatus == STATUS_PROGRAM_COMPLETE) {
+                // Program which is complete.
+                $row[] = get_string('timeduefixedprog', 'totara_program');
+                $row[] = trim(userdate($item->timedue,
+                    get_string('datepickerlongyearphpuserdate', 'totara_core'), 99, false));
+            } else if (!$isprog && ($item->certifpath == CERTIFPATH_RECERT || $item->renewalstatus == CERTIFRENEWALSTATUS_EXPIRED)) {
+                // Certification which is complete.
+                $row[] = get_string('timeduefixedcert', 'totara_program');
+                $row[] = trim(userdate($item->timedue,
+                    get_string('datepickerlongyearphpuserdate', 'totara_core'), 99, false));
+            } else if (empty($item->timedue) || $item->timedue == COMPLETION_TIME_NOT_SET) {
+                // No date set.
+                $row[] = $this->get_completion($item);
+                if ($item->completionevent == COMPLETION_EVENT_NONE) {
+                    $row[] = get_string('noduedate', 'totara_program');
+                } else {
+                    $row[] = get_string('notyetknown', 'totara_program');
+                }
+            } else {
+                // Date set.
+                $item->completiontime = COMPLETION_TIME_NOT_SET;
+                $item->completionevent = COMPLETION_EVENT_NONE;
+                $row[] = $this->get_completion($item);
+                $row[] = trim(userdate($item->timedue,
+                    get_string('datepickerlongyearphpuserdate', 'totara_core'), 99, false));
+            }
+        } else {
+            // New individual assignment.
+            $item->completiontime = COMPLETION_TIME_NOT_SET;
+            $item->completionevent = COMPLETION_EVENT_NONE;
+            $row[] = $this->get_completion($item);
+            $row[] = get_string('notyetset', 'totara_program');
+        }
 
         return $row;
     }

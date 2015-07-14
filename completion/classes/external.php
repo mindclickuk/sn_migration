@@ -359,7 +359,7 @@ class core_completion_external extends external_api {
                                  'title'         => new external_value(PARAM_TEXT,  'Completion criteria Title'),
                                  'status'        => new external_value(PARAM_NOTAGS, 'Completion status (Yes/No) a % or number'),
                                  'complete'      => new external_value(PARAM_BOOL,   'Completion status (true/false)'),
-                                 'timecompleted' => new external_value(PARAM_INT,   'Timestamp for criteria completetion'),
+                                 'timecompleted' => new external_value(PARAM_INT,   'Timestamp for criteria completion'),
                                  'details' => new external_single_structure(
                                      array(
                                          'type' => new external_value(PARAM_TEXT, 'Type description'),

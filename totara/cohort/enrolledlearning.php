@@ -90,6 +90,13 @@ local_js(
         TOTARA_JS_DATEPICKER
     )
 );
+
+$jsmodule = array(
+    'name' => 'totara_cohortenrolledlearning',
+    'fullpath' => '/totara/cohort/enrolledlearning.js',
+    'requires' => array('json', 'totara_core'));
+$PAGE->requires->js_init_call('M.totara_cohortenrolledlearning.init', null, false, $jsmodule);
+
 // Include cohort learning js module.
 $PAGE->requires->strings_for_js(array('none'), 'moodle');
 $PAGE->requires->strings_for_js(array('assignenrolledlearningcourse', 'assignenrolledlearningprogram',

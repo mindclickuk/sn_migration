@@ -272,7 +272,7 @@ M.totara_cohortprogramcompletion = M.totara_cohortprogramcompletion || {
             }
 
             dialog.cohortid = M.totara_cohortprogramcompletion.config.cohortid;
-            dialog.programid = $(this).siblings('.completetionprogramid').val();
+            dialog.programid = $(this).siblings('.completionprogramid').val();
 
             dialog.completiontime = $('input[name^="completiontime"]', div);
             dialog.completionevent = $('input[name^="completionevent"]', div);
@@ -288,7 +288,7 @@ M.totara_cohortprogramcompletion = M.totara_cohortprogramcompletion || {
             var dialog = totaraDialogs['completion'];
 
             var div = $(this).parent('div');
-            dialog.programid = $(this).siblings('.completetionprogramid').val();
+            dialog.programid = $(this).siblings('.completionprogramid').val();
             dialog.cohortid = M.totara_cohortprogramcompletion.config.cohortid;
             dialog.completiontime = $('input[name^="completiontime"]', div);
             dialog.completionevent = $('input[name^="completionevent"]', div);

@@ -40,6 +40,7 @@ $string['availablefrom'] = 'Available From';
 $string['availableuntil'] = 'Available Until';
 $string['beforewindowduetoclose'] = 'Before window is due to close';
 $string['cancelcertificationmanagement'] = 'Clear unsaved changes';
+$string['certassignmentduedates'] = 'Certification assignment due dates';
 $string['certcomplete'] = 'Your certification is complete.';
 $string['certexpired'] = 'Your certification has expired, you need to complete the original certification';
 $string['certifcategories'] = 'Certification Categories';
