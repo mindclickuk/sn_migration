@@ -55,4 +55,20 @@ $observers = array(
         'eventname' => '\core\event\course_deleted',
         'callback'  => 'totara_program_observer::course_deleted',
     ),
+    array(
+        'eventname' => '\totara_cohort\event\members_updated',
+        'callback'  => 'totara_program_observer::cohort_members_updated',
+    ),
+    array(
+        'eventname' => '\core\event\cohort_member_added',
+        'callback'  => 'totara_program_observer::cohort_members_updated',
+    ),
+    array(
+        'eventname' => '\core\event\cohort_member_removed',
+        'callback'  => 'totara_program_observer::cohort_members_updated',
+    ),
+    array(
+        'eventname' => '\totara_core\event\position_updated',
+        'callback'  => 'totara_program_observer::position_updated',
+    ),
 );

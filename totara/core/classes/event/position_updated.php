@@ -30,6 +30,10 @@ defined ('MOODLE_INTERNAL') || die();
  *
  * @property-read array $other {
  *      'type' => int Type of assignment
+ *      'oldmanagerid' => int managerid before the record was updated
+ *      'oldmanagerpath' => int managerpath before the record was updated
+ *      'oldpositionid' => int positionid before the record was updated
+ *      'oldorganisationid' => int organisationid before the record was updated
  * }
  *
  */
@@ -48,10 +52,20 @@ class position_updated extends \core\event\base {
      * @return position_updated
      */
     public static function create_from_instance(\position_assignment $instance, \context $context) {
+        $oldmanagerid = isset($instance->oldmanagerid) ? $instance->oldmanagerid : null;
+        $oldmanagerpath = isset($instance->oldmanagerpath) ? $instance->oldmanagerpath : null;
+        $oldpositionid = isset($instance->oldpositionid) ? $instance->oldpositionid : null;
+        $oldorganisationid = isset($instance->oldorganisationid) ? $instance->oldorganisationid : null;
+
         $data = array(
             'context' => $context,
             'relateduserid' => $instance->userid,
-            'other' => array('type' => $instance->type),
+            'other' => array('type' => $instance->type,
+                             'oldmanagerid' => $oldmanagerid,
+                             'oldmanagerpath' => $oldmanagerpath,
+                             'oldpositionid' => $oldpositionid,
+                             'oldorganisationid' => $oldorganisationid,
+            ),
         );
 
         self::$preventcreatecall = false;

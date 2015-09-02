@@ -854,6 +854,15 @@ function totara_cohort_update_dynamic_cohort_members($cohortid, $userid=0, $dela
         unset($delids);
     }
 
+    if ($numadd > 0 || $numdel > 0) {
+        $event = \totara_cohort\event\members_updated::create(
+            array(
+                'objectid' => $cohortid,
+            )
+        );
+        $event->trigger();
+    }
+
     return array('add' => $numadd, 'del' => $numdel);
 }
 

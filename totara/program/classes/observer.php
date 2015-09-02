@@ -226,4 +226,147 @@ class totara_program_observer {
 
         return true;
     }
+
+    /**
+     * This function is triggered when the members of a cohort are (or might have been) updated.
+     * It needs to mark all related programs and certifications for deferred update. The prog and cert
+     * users will then be updated the next time the deferred program assignments scheduled task runs.
+     *
+     * @param \core\event\base $event Can be various events but objectid must be a cohort.
+     * @return boolean True if successful
+     */
+    public static function cohort_members_updated(\core\event\base $event) {
+        global $DB;
+        $cohortid = $event->objectid;
+
+        $sql = "UPDATE {prog} SET assignmentsdeferred = 1
+                 WHERE id IN (SELECT programid
+                                FROM {prog_assignment}
+                               WHERE assignmenttype = :assignmenttypecohort
+                                 AND assignmenttypeid = :cohortid)";
+        $DB->execute($sql, array('assignmenttypecohort' => ASSIGNTYPE_COHORT, 'cohortid' => $cohortid));
+
+        return true;
+    }
+
+    /**
+     * This function is triggered when a user's position is updated. Their manager, position or organisation may
+     * have changed, in which case we mark the programs and certifications which contain both the new and old
+     * management hierarchy, position and organisation for deferred update.
+     *
+     * @param \totara_core\event\position_updated $event
+     * @return boolean True if successful
+     */
+    public static function position_updated(\totara_core\event\position_updated $event) {
+        global $DB;
+
+        // Only process the primary position assignment.
+        if ($event->other['type'] != POSITION_TYPE_PRIMARY) {
+            return true;
+        }
+
+        $newassignment = $DB->get_record('pos_assignment',
+            array('userid' => $event->relateduserid, 'type' => POSITION_TYPE_PRIMARY));
+
+        if ($newassignment->managerid != $event->other['oldmanagerid']) {
+            $directmanagerstoprocess = array();
+            $indirectmanagerstoprocess = array();
+
+            if ($newassignment->managerid) {
+                $directmanagerstoprocess[] = $newassignment->managerid;
+                $path = explode('/', substr($newassignment->managerpath, 1));
+                $countpath = count($path);
+                if ($countpath > 2) {
+                    // Don't include the user or their manager here.
+                    $indirectmanagerstoprocess = array_merge($indirectmanagerstoprocess, array_slice($path, 0, $countpath - 2));
+                }
+            }
+
+            if ($event->other['oldmanagerid']) {
+                $directmanagerstoprocess[] = $event->other['oldmanagerid'];
+                $path = explode('/', substr($event->other['oldmanagerpath'], 1));
+                $countpath = count($path);
+                if ($countpath > 2) {
+                    // Don't include the user or their manager here.
+                    $indirectmanagerstoprocess = array_merge($indirectmanagerstoprocess, array_slice($path, 0, $countpath - 2));
+                }
+            }
+
+            if (!empty($directmanagerstoprocess) || !empty($indirectmanagerstoprocess)) {
+                $params = array('assignmenttypemanager' => ASSIGNTYPE_MANAGER);
+                $managersql = "";
+
+                if (!empty($directmanagerstoprocess)) {
+                    list($directinsql, $directparams) = $DB->get_in_or_equal($directmanagerstoprocess, SQL_PARAMS_NAMED);
+                    $managersql .= "assignmenttypeid " . $directinsql;
+                    $params = array_merge($params, $directparams);
+                }
+
+                if (!empty($indirectmanagerstoprocess)) {
+                    if (!empty($managersql)) {
+                        $managersql .= " OR ";
+                    }
+
+                    list($indirectinsql, $indirectparams) = $DB->get_in_or_equal($indirectmanagerstoprocess, SQL_PARAMS_NAMED);
+                    $managersql .= "assignmenttypeid {$indirectinsql} AND includechildren = 1";
+                    $params = array_merge($params, $indirectparams);
+                }
+
+                $sql = "UPDATE {prog} SET assignmentsdeferred = 1
+                         WHERE id IN (SELECT programid
+                                        FROM {prog_assignment}
+                                       WHERE assignmenttype = :assignmenttypemanager
+                                         AND ($managersql))";
+                $DB->execute($sql, $params);
+            }
+        }
+
+        if ($newassignment->positionid != $event->other['oldpositionid']) {
+            $positionstoprocess = array();
+
+            if ($newassignment->positionid) {
+                $positionstoprocess[] = $newassignment->positionid;
+            }
+
+            if ($event->other['oldpositionid']) {
+                $positionstoprocess[] = $event->other['oldpositionid'];
+            }
+
+            if (!empty($positionstoprocess)) {
+                list($insql, $params) = $DB->get_in_or_equal($positionstoprocess, SQL_PARAMS_NAMED);
+                $sql = "UPDATE {prog} SET assignmentsdeferred = 1
+                         WHERE id IN (SELECT programid
+                                        FROM {prog_assignment}
+                                       WHERE assignmenttype = :assignmenttypeposition
+                                         AND assignmenttypeid {$insql})";
+                $params['assignmenttypeposition'] = ASSIGNTYPE_POSITION;
+                $DB->execute($sql, $params);
+            }
+        }
+
+        if ($newassignment->organisationid != $event->other['oldorganisationid']) {
+            $organisationstoprocess = array();
+
+            if ($newassignment->organisationid) {
+                $organisationstoprocess[] = $newassignment->organisationid;
+            }
+
+            if ($event->other['oldorganisationid']) {
+                $organisationstoprocess[] = $event->other['oldorganisationid'];
+            }
+
+            if (!empty($organisationstoprocess)) {
+                list($insql, $params) = $DB->get_in_or_equal($organisationstoprocess, SQL_PARAMS_NAMED);
+                $sql = "UPDATE {prog} SET assignmentsdeferred = 1
+                         WHERE id IN (SELECT programid
+                                        FROM {prog_assignment}
+                                       WHERE assignmenttype = :assignmenttypeorganisation
+                                         AND assignmenttypeid {$insql})";
+                $params['assignmenttypeorganisation'] = ASSIGNTYPE_ORGANISATION;
+                $DB->execute($sql, $params);
+            }
+        }
+
+        return true;
+    }
 }

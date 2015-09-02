@@ -1705,6 +1705,21 @@ function assign_user_position($assignment, $unittest=false) {
 
     $transaction = $DB->start_delegated_transaction();
 
+    // Get old position and organisation (used to inform event of what changed or was removed).
+    $assignment->oldmanagerid = null;
+    $assignment->oldmanagerpath = null;
+    $assignment->oldpositionid = null;
+    $assignment->oldorganisationid = null;
+    if ($assignment->type == POSITION_TYPE_PRIMARY) {
+        $oldassignment = $DB->get_record('pos_assignment', array('userid' => $assignment->userid, 'type' => POSITION_TYPE_PRIMARY));
+        if ($oldassignment) {
+            $assignment->oldmanagerid = $oldassignment->managerid;
+            $assignment->oldmanagerpath = $oldassignment->managerpath;
+            $assignment->oldpositionid = $oldassignment->positionid;
+            $assignment->oldorganisationid = $oldassignment->organisationid;
+        }
+    }
+
     // Get old user id.
     if (!empty($assignment->reportstoid)) {
         $old_managerid = $DB->get_field('role_assignments', 'userid', array('id' => $assignment->reportstoid));
