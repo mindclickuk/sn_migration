@@ -91,10 +91,10 @@ switch ($searchtype) {
 
         // Generate search SQL
         $keywords = totara_search_parse_keywords($query);
-        $fields = array('firstname', 'lastname', 'email');
-        list($searchsql, $params) = totara_search_get_keyword_where_clause($keywords, $fields);
+        $fields = get_all_user_name_fields();
 
-        $search_info->fullname = $DB->sql_fullname('firstname', 'lastname');
+        list($searchsql, $params) = totara_search_get_keyword_where_clause($keywords, $canviewemail ? array_merge ($fields, array('email' => 'email')) : $fields);
+        $search_info->fullnamefields = implode(',', $fields);
         if ($canviewemail) {
             $search_info->email = 'email';
         }
@@ -317,14 +317,21 @@ switch ($searchtype) {
      * Manager search
      */
     case 'manager':
+        // Generate search SQL.
         $keywords = totara_search_parse_keywords($query);
-        $fields = array('u.firstname', 'u.lastname', 'u.email');
-        list($searchsql, $params) = totara_search_get_keyword_where_clause($keywords, $fields);
+        $fields = get_all_user_name_fields(false, '','u.');
 
-        $search_info->id = 'pa.managerid';
-        $search_info->fullname = $DB->sql_fullname('u.firstname', 'u.lastname');
         if ($canviewemail) {
-            $search_info->email = 'email';
+            $allfields = array_merge ($fields, array('email' => 'u.email'));
+        } else {
+            $allfields = $fields;
+        }
+
+        list($searchsql, $params) = totara_search_get_keyword_where_clause($keywords, $allfields);
+        $search_info->id = 'pa.managerid';
+        $search_info->fullnamefields = implode(',', $fields);
+        if ($canviewemail) {
+            $search_info->email = 'u.email';
         }
         $search_info->sql = "
             FROM {pos_assignment} pa
@@ -334,7 +341,7 @@ switch ($searchtype) {
                 pa.type = " . POSITION_TYPE_PRIMARY . "
                 AND {$searchsql}
         ";
-        $search_info->order = " GROUP BY pa.managerid, u.firstname, u.lastname, u.email ORDER BY u.firstname, u.lastname";
+        $search_info->order = " GROUP BY pa.managerid, " . implode(',', $allfields) . ", u.id ORDER BY u.firstname, u.lastname, u.id";
         $search_info->params = $params;
         break;
 
@@ -402,8 +409,8 @@ switch ($searchtype) {
     case 'temporary_manager':
         // Generate search SQL.
         $keywords = totara_search_parse_keywords($query);
-        $fields = array('u.firstname', 'u.lastname', 'u.email');
-        list($searchsql, $params) = totara_search_get_keyword_where_clause($keywords, $fields);
+        $fields = get_all_user_name_fields(false, '','u.');
+        list($searchsql, $params) = totara_search_get_keyword_where_clause($keywords, $canviewemail ? array_merge ($fields, array('email' => 'u.email')) : $fields);
 
         // Generate manager sql.
         $managersql = '';
@@ -416,9 +423,9 @@ switch ($searchtype) {
         }
 
         $search_info->id = 'u.id';
-        $search_info->fullname = $DB->sql_fullname('u.firstname', 'u.lastname');
+        $search_info->fullnamefields = implode(',', $fields);
         if ($canviewemail) {
-            $search_info->email = 'email';
+            $search_info->email = 'u.email';
         }
         $search_info->sql = "FROM {user} u
                             WHERE {$searchsql} {$managersql}
@@ -517,7 +524,12 @@ if (strlen($query)) {
     $strqueryerror = get_string('queryerror', 'totara_core');
     $start = $page * DIALOG_SEARCH_NUM_PER_PAGE;
 
-    $select = "SELECT {$search_info->id} AS id, {$search_info->fullname} AS fullname ";
+    $select = "SELECT {$search_info->id} AS id ";
+    if (isset($search_info->fullnamefields)) {
+        $select .= ", {$search_info->fullnamefields} ";
+    } else if (isset($search_info->fullname)) {
+        $select .= ", {$search_info->fullname} AS fullname ";
+    }
     if (isset($search_info->email)) {
         $select .= ", {$search_info->email} AS email ";
     }
@@ -556,7 +568,7 @@ if (strlen($query)) {
                 $item->id = $result->id;
                 if (isset($result->email)) {
                     $username = new stdClass();
-                    $username->fullname = $result->fullname;
+                    $username->fullname = isset($result->fullname) ? $result->fullname : fullname($result);
                     $username->email = $result->email;
                     $item->fullname = get_string('assignindividual', 'totara_program', $username);
                 } else {

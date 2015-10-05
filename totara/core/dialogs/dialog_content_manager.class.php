@@ -118,9 +118,9 @@ class totara_dialog_content_manager extends totara_dialog_content {
         global $DB;
 
         if ($parentid) {
-            // returns users who *are* managers, who's manager is user $parentid
-            return $DB->get_records_sql("
-                SELECT u.id, " . $DB->sql_fullname() . " AS fullname, u.email
+            // Returns users who are managers, who's manager is user $parentid.
+            $records = $DB->get_records_sql("
+                SELECT u.id, " . get_all_user_name_fields(true, 'u') . ", u.email
                 FROM (
                     SELECT DISTINCT managerid AS id
                     FROM {pos_assignment}
@@ -130,8 +130,14 @@ class totara_dialog_content_manager extends totara_dialog_content {
                 INNER JOIN {user} u on u.id = pa.userid
                 WHERE pa.managerid = ?
                 AND pa.type = ?
-                ORDER BY u.lastname, u.id
+                ORDER BY u.firstname, u.lastname, u.id
             ", array(POSITION_TYPE_PRIMARY, $parentid, POSITION_TYPE_PRIMARY));
+
+            foreach ($records as $index => $record) {
+                $records[$index]->fullname = fullname($record);
+            }
+
+            return $records;
         }
         else {
             // If no parentid, grab the root node of this framework
@@ -150,8 +156,8 @@ class totara_dialog_content_manager extends totara_dialog_content {
         global $DB;
 
         // returns users who *are* managers, but don't *have* a manager
-        return $DB->get_records_sql("
-            SELECT u.id, " . $DB->sql_fullname() . " as fullname, u.email
+        $records = $DB->get_records_sql("
+            SELECT u.id, " . get_all_user_name_fields(true, 'u') . ", u.email
             FROM (
                 SELECT DISTINCT managerid AS id
                 FROM {pos_assignment}
@@ -160,9 +166,15 @@ class totara_dialog_content_manager extends totara_dialog_content {
             LEFT JOIN {pos_assignment} pa on managers.id = pa.userid
             INNER JOIN {user} u on u.id = managers.id
             WHERE pa.managerid IS NULL OR pa.managerid = 0
-            GROUP BY u.id, u.firstname, u.lastname, u.email
-            ORDER BY u.firstname, u.lastname
+            GROUP BY u.id, " . get_all_user_name_fields(true, 'u') . ", u.email
+            ORDER BY u.firstname, u.lastname, u.id
         ", array(POSITION_TYPE_PRIMARY));
+
+        foreach ($records as $index => $record) {
+            $records[$index]->fullname = fullname($record);
+        }
+
+        return $records;
     }
 
 
