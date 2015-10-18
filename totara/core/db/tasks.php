@@ -46,7 +46,7 @@ $tasks = array(
     ),
     array(
         'classname' => 'totara_core\task\tool_totara_sync_task',
-        'blocking' => '*',
+        'blocking' => 1,
         'minute' => '*',
         'hour' => '*',
         'day' => '*',
