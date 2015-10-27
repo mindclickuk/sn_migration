@@ -67,6 +67,35 @@ class customfield_textarea extends customfield_base {
     }
 
     /**
+     * Include processed customfield data to the sync object.
+     *
+     * @param  object $itemnew     The original syncitem to be processed.
+     * @return object              The syncitem with the customfield data processed.
+     */
+    function sync_data_preprocess($itemnew) {
+
+        // Get short form name by removing trailing '_editor' from $this->inputname;
+        $shortinputname = substr($this->inputname, 0, -7);
+
+        $systemcontext = context_system::instance();
+
+        // Create textarea options array taken from global $TEXTAREA_OPTIONS
+        $textarea_options = array(
+            'subdirs' => 0,
+            'maxfiles' => EDITOR_UNLIMITED_FILES,
+            'maxbytes' => get_max_upload_file_size(),
+            'trusttext' => false,
+            'context' => $systemcontext,
+            'collapsed' => true
+        );
+
+        // We need to include processed customfield data to the sync object.
+        $itemnew = file_prepare_standard_editor($itemnew, $shortinputname, $textarea_options, $systemcontext, 'totara_customfield', $this->prefix);
+
+        return $itemnew;
+    }
+
+    /**
     * Saves the data coming from form
     * @param   mixed   data coming from the form
     * @param   string  name of the prefix (ie, competency)
