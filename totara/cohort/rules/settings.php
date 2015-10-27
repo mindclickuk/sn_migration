@@ -374,9 +374,10 @@ function cohort_rules_list($reset = false){
                 case 'checkbox':
                     $dialog = new cohort_rule_ui_checkbox(
                         get_string('usersposx', 'totara_cohort', $field->name),
+                        // Because it may result in major dataloss change the strings vice versa.
                         array(
-                            1 => get_string('checkboxyes','totara_cohort'),
-                            0 => get_string('checkboxno', 'totara_cohort')
+                            1 => get_string('checkboxno', 'totara_cohort'),
+                            0 => get_string('checkboxyes', 'totara_cohort')
                         )
                     );
                     $sqlhandler = new cohort_rule_sqlhandler_in_poscustomfield($id, $field->datatype);
