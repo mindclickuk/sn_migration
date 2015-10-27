@@ -118,4 +118,15 @@ class behat_facetoface extends behat_base {
         );
         $node->click();
     }
+
+    /**
+     * Select to approve the given user.
+     *
+     * @Given /^I select to approve "([^"]*)"$/
+     */
+    public function i_select_to_approve($user) {
+        return array(
+            new Given('I click on "input[value=\'2\']" "css_element" in the "'.$user.'" "table_row"')
+        );
+    }
 }

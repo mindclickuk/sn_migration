@@ -2046,22 +2046,39 @@ function facetoface_user_signup($session, $facetoface, $course, $discountcode,
     if (!$facetoface->approvalreqd || facetoface_session_has_selfapproval($facetoface, $session)) {
         $new_status = $statuscode;
     } else {
-        // If approval required
-
-        // Get current status (if any)
-        $current_status =  $DB->get_field('facetoface_signups_status', 'statuscode', array('signupid' => $usersignup->id, 'superceded' => 0));
-
-        // If approved, then no problem
-        if ($current_status == MDL_F2F_STATUS_APPROVED) {
+        // Manager approval is required.
+        // Before we can accept the new status we need to check if the user must first be approved by there manager,
+        // Get current status (if any) so that we can decide what to do.
+        $currentstatus =  $DB->get_field('facetoface_signups_status', 'statuscode', array('signupid' => $usersignup->id, 'superceded' => 0));
+        if (empty($currentstatus)) {
+            // If they don't already have a status then they must require approval.
+            $currentstatus = MDL_F2F_STATUS_REQUESTED;
+        }
+        // The following statuses have already received approval.
+        $alreadyapproved = array(
+            MDL_F2F_STATUS_APPROVED, // The user has just been approved, yay.
+            MDL_F2F_STATUS_WAITLISTED, // The user is waitlisted - they must have been approved already.
+            MDL_F2F_STATUS_BOOKED // The user is booked - they must have been approved already.
+        );
+        // The following statuses still need to seek approval.
+        $mustapprove = array(
+            MDL_F2F_STATUS_REQUESTED, // They are currently waiting for approval already.
+            MDL_F2F_STATUS_USER_CANCELLED, // They cancelled and are coming back again - seek approval once more.
+            MDL_F2F_STATUS_SESSION_CANCELLED, // They session was cancelled but we are back? seek approval to be sure.
+        );
+        if (in_array($currentstatus, $alreadyapproved)) {
+            // The user is an already approved state - no need to seek there approval again.
+            // We will use the given status.
             $new_status = $statuscode;
+        } else if (in_array($currentstatus, $mustapprove)) {
+            // The user is not in an approved state, in which case they must be sent through for approval.
+            $new_status = MDL_F2F_STATUS_REQUESTED;
         } else {
-            // If currently on the waitlist they have already been approved, no need to approve them again.
-            if ($current_status == MDL_F2F_STATUS_WAITLISTED) {
-                $new_status = $statuscode;
-            } else {
-                // Otherwise, send manager request.
-                $new_status = MDL_F2F_STATUS_REQUESTED;
-            }
+            // Hmm this is a little worrying I wonder what they are doing.
+            // As we don't know let us throw a debugging notice and take a safe path.
+            // This may lead to notifications.
+            debugging('Unexpected status encountered when updated users facetoface signup', DEBUG_DEVELOPER);
+            $new_status = MDL_F2F_STATUS_REQUESTED;
         }
     }
 

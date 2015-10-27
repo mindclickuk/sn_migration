@@ -83,3 +83,72 @@ Feature: Manager approval
     And I follow "Approval required"
     And I click on "input[value='2']" "css_element" in the "Sam1 Student1" "table_row"
     And I press "Update requests"
+
+  @javascript
+  Scenario: Approved learner cancels attendance
+    Given the following "position" frameworks exist:
+      | fullname      | idnumber |
+      | PosHierarchy1 | FW001    |
+    And the following "position" hierarchy exists:
+      | framework | idnumber | fullname   |
+      | FW001     | POS001   | Position1  |
+    And the following position assignments exist:
+      | user     | position | manager  |
+      | student1 | POS001   | teacher1 |
+      | student2 | POS001   | teacher1 |
+
+    When I log in as "student1"
+    # Sign up student 1.
+    And I click on "Find Learning" in the totara menu
+    And I follow "Course 1"
+    And I follow "Sign-up"
+    And I should see "This session requires manager approval to book."
+    And I press "Sign-up"
+    And I should see "Your booking has been completed but requires approval from your manager."
+    And I log out
+    # Sign up student 2
+    And I log in as "student2"
+    And I click on "Find Learning" in the totara menu
+    And I follow "Course 1"
+    And I follow "Sign-up"
+    And I should see "This session requires manager approval to book."
+    And I press "Sign-up"
+    And I should see "Your booking has been completed but requires approval from your manager."
+    And I log out
+    # Approve both users
+    And I log in as "teacher1"
+    And I click on "Find Learning" in the totara menu
+    And I follow "Course 1"
+    And I follow "Test facetoface name"
+    And I follow "Attendees"
+    And I follow "Approval required"
+    And I select to approve "Sam1 Student1"
+    And I select to approve "Sam2 Student2"
+    Then I press "Update requests"
+    And I should see "This session is overbooked (2 / 1)"
+    And I should see "Sam1 Student1" in the "table.mod-facetoface-attendees" "css_element"
+    And I should see "Sam2 Student2" in the "table.mod-facetoface-attendees" "css_element"
+    And I log out
+    # Student 1 cancels their attendance.
+    When I log in as "student1"
+    And I click on "Find Learning" in the totara menu
+    And I follow "Course 1"
+    And I follow "Cancel booking"
+    And I should see "Cancel booking for Test facetoface name"
+    And I press "Yes"
+    Then I should see "Your booking has been cancelled"
+    And I log out
+    # Teacher confirms that student 1 is not longer an attendee
+    When I log in as "teacher1"
+    And I click on "Find Learning" in the totara menu
+    And I follow "Course 1"
+    And I follow "Test facetoface name"
+    And I follow "Attendees"
+    Then I should not see "This session is overbooked (2 / 1)"
+    And I should not see "Sam1 Student1" in the "table.mod-facetoface-attendees" "css_element"
+    And I should see "Sam2 Student2" in the "table.mod-facetoface-attendees" "css_element"
+    # Confirm the cancellation page shows the correct result
+    When I follow "Cancellations"
+    And I should see "Sam1 Student1" in the "table.mod-facetoface-attendees" "css_element"
+    And I should not see "Sam2 Student2" in the "table.mod-facetoface-attendees" "css_element"
+
