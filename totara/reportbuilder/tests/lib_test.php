@@ -981,6 +981,45 @@ class totara_reportbuilder_lib_testcase extends advanced_testcase {
         $this->resetAfterTest(true);
     }
 
+    /**
+     * Test that internally grouped report instances recognized correctly
+     */
+    public function test_is_internally_grouped() {
+        global $DB;
+        $rb = $this->rb;
+
+        // Check internally non grouped report without user columns aggregation.
+        $this->assertFalse($rb->grouped);
+        $this->assertFalse($rb->is_internally_grouped());
+
+        // Check internally non grouped report with user columns aggregation.
+        $this->add_column($rb, 'competency', 'path', null, 'groupconcat', '', 0);
+
+        $report = new reportbuilder($this->rb_col_data2->reportid);
+        $this->assertTrue($report->grouped);
+        $this->assertFalse($report->is_internally_grouped());
+
+        // Check internally grouped report without user columns aggregation.
+        // Create report.
+        $rid = $this->create_report('certification_overview', 'Certification overview');
+
+        $report = new reportbuilder($rid);
+        $this->add_column($report, 'user', 'namelinkicon', null, null, '', 0);
+        $this->add_column($report, 'user', 'username', null, null, '', 0);
+        $this->add_column($report, 'certif_completion', 'progress', null, null, '', 0);
+
+        // Get report.
+        $report = new reportbuilder($rid, null, false, null, null, true);
+        $this->assertTrue($report->grouped);
+        $this->assertTrue($report->is_internally_grouped());
+
+        // Check internally grouped report without user columns aggregation.
+        $this->add_column($report, 'certif_completion', 'renewalstatus', null, 'groupconcat', '', 0);
+        $report = new reportbuilder($rid);
+        $this->assertTrue($report->grouped);
+        $this->assertTrue($report->is_internally_grouped());
+    }
+
     /*
     function test_reportbuilder_sort_join() {
         $rb = $this->rb;

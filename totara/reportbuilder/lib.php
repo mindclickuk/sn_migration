@@ -151,7 +151,18 @@ class reportbuilder {
     protected $uniqueid;
 
     private $_paramoptions, $_embeddedparams, $_fullcount, $_filteredcount, $_isinitiallyhidden;
-    public $grouped, $reportfor, $embedded, $toolbarsearch;
+
+    /**
+     * @var bool Does report instance use GROUP BY statement (aggregation)?
+     */
+    public $grouped;
+
+    /**
+     * @var bool Indicates that report instance is grouped internally and not only because user selected custom aggregation for column
+     */
+    protected $pregrouped;
+
+    public $reportfor, $embedded, $toolbarsearch;
 
     /**
      * The the state of global restrictions in this report.
@@ -333,6 +344,7 @@ class reportbuilder {
 
         // Assume no grouping initially.
         $this->grouped = false;
+        $this->pregrouped = false;
 
         $this->cacheignore = $nocache;
         if ($this->src->cacheable) {
@@ -1107,6 +1119,7 @@ class reportbuilder {
                 // enabled report grouping if any filters are grouped
                 if (isset($filterobj->grouping) && $filterobj->grouping != 'none') {
                     $this->grouped = true;
+                    $this->pregrouped = true;
                 }
             }
         }
@@ -1471,6 +1484,9 @@ class reportbuilder {
                     if ($out[$key]->grouping != 'none' or $out[$key]->aggregate) {
                         $this->grouped = true;
                     }
+                    if ($out[$key]->grouping != 'none') {
+                        $this->pregrouped = true;
+                    }
                 }
             } else {
                 if (isset($this->requiredcolumns[$key])) {
@@ -1492,6 +1508,9 @@ class reportbuilder {
                     if ($out[$key]->grouping !== 'none' or $out[$key]->aggregate) {
                         $this->grouped = true;
                     }
+                    if ($out[$key]->grouping !== 'none') {
+                        $this->pregrouped = true;
+                    }
                 } catch (ReportBuilderException $e) {
                     debugging($e->getMessage(), DEBUG_NORMAL);
                 }
@@ -1506,6 +1525,9 @@ class reportbuilder {
             // Enabled report grouping if any columns are grouped.
             if ($column->grouping !== 'none' or $column->aggregate) {
                 $this->grouped = true;
+            }
+            if ($column->grouping !== 'none') {
+                $this->pregrouped = true;
             }
         }
 
@@ -3875,6 +3897,16 @@ class reportbuilder {
         if (method_exists($this->src, $func)) {
             return $this->src->$func();
         }
+    }
+
+    /**
+     * Indicates that report instance has grouping by one of used columns, filters, etc not including aggregation explicitly set by
+     * the user
+     *
+     * @return bool
+     */
+    public function is_internally_grouped() {
+        return $this->pregrouped;
     }
 
     /**

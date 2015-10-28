@@ -498,14 +498,7 @@ class report_builder_edit_columns_form extends moodleform {
         if (isset($report->columnoptions) && is_array($report->columnoptions) && count($report->columnoptions) > 0) {
             $rawcolumns = $DB->get_records('report_builder_columns', array('reportid' => $id), 'sortorder ASC, id ASC');
             if ($report->grouped) {
-                $aggregatedpreset = false;
-                foreach ($rawcolumns as $rawcolumn) {
-                    if ($rawcolumn->aggregate) {
-                        $aggregatedpreset = true;
-                        break;
-                    }
-                }
-                if ($aggregatedpreset) {
+                if ($report->is_internally_grouped()) {
                     $mform->addElement('html', $OUTPUT->notification(get_string('warngroupaggregation', 'totara_reportbuilder'), 'notifymessage'));
                 }
             }
