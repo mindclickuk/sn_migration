@@ -617,6 +617,7 @@ function facetoface_update_attendees($session) {
 
     // Update user status'
     $users = facetoface_get_attendees($session->id, array(MDL_F2F_STATUS_BOOKED, MDL_F2F_STATUS_WAITLISTED), true);
+    core_collator::asort_objects_by_property($users, 'timesignedup', core_collator::SORT_NUMERIC);
 
     if ($users) {
         // No/deleted session dates
