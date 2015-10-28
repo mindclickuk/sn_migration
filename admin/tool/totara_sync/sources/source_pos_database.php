@@ -45,9 +45,19 @@ class totara_sync_source_pos_database extends totara_sync_source_pos {
                 $fieldmappings[$field] = $this->config->{'fieldmapping_'.$field};
             }
         }
+        foreach ($this->customfields as $key => $field) {
+            if (!empty($this->config->{'fieldmapping_'.$key})) {
+                $fieldmappings[$key] = $this->config->{'fieldmapping_'.$key};
+            }
+        }
 
         $dbstruct = array();
         foreach ($this->fields as $field) {
+            if (!empty($this->config->{'import_'.$field})) {
+                $dbstruct[] = !empty($fieldmappings[$field]) ? $fieldmappings[$field] : $field;
+            }
+        }
+        foreach (array_keys($this->customfields) as $field) {
             if (!empty($this->config->{'import_'.$field})) {
                 $dbstruct[] = !empty($fieldmappings[$field]) ? $fieldmappings[$field] : $field;
             }
@@ -142,45 +152,35 @@ class totara_sync_source_pos_database extends totara_sync_source_pos {
             $this->addlog(get_string('databaseconnectfail', 'tool_totara_sync'), 'error', 'importdata');
         }
 
-        // To get the row that are in the database table get one row then check the headers
-        $db_fields = $database_connection->get_record_sql('SELECT * FROM ' . $db_table, array(), IGNORE_MULTIPLE);
-        $db_columns = array_keys((array)$db_fields);
-
-        // Get a list of customfields
-        foreach ($db_columns as $index => $field) {
-            if (!preg_match('/^customfield_/', $field)) {
-                unset($db_columns[$index]);
-            }
-        }
-
-        // Check which fields should be imported
+        // Get list of fields to be imported
         $fields = array();
-        foreach ($this->fields as $field) {
-            if (!empty($this->config->{'import_'.$field})) {
-                $fields[] = $field;
+        foreach ($this->fields as $f) {
+            if (!empty($this->config->{'import_'.$f})) {
+                $fields[] = $f;
             }
         }
 
-        $fields = array_merge($fields, $db_columns);
+        // Same for customfields
+        foreach ($this->customfields as $name => $value) {
+            if (!empty($this->config->{'import_'.$name})) {
+                $fields[] = $name;
+            }
+        }
 
-        unset($db_columns);
-
-        // Map fields
+        // Sort out field mappings
         $fieldmappings = array();
-        foreach ($fields as $index => $field) {
-            if (empty($this->config->{'fieldmapping_'.$field})) {
-                $fieldmappings[$field] = $field;
+        foreach ($fields as $i => $f) {
+            if (empty($this->config->{'fieldmapping_'.$f})) {
+                $fieldmappings[$f] = $f;
             } else {
-                $fieldmappings[$field] = $this->config->{'fieldmapping_'.$field};
+                $fieldmappings[$f] = $this->config->{'fieldmapping_'.$f};
             }
         }
 
-        // Finally, perform externaldb to db field mapping
-        foreach ($fields as $index => $field) {
-            if (!preg_match('/^customfield_/', $field)) {
-                if (in_array($field, array_keys($fieldmappings))) {
-                    $fields[$index] = $fieldmappings[$field];
-                }
+        // Finally, perform externaldb to totara db field mapping
+        foreach ($fields as $i => $f) {
+            if (in_array($f, array_keys($fieldmappings))) {
+                $fields[$i] = $fieldmappings[$f];
             }
         }
 
@@ -194,6 +194,7 @@ class totara_sync_source_pos_database extends totara_sync_source_pos {
             }
         }
 
+        unset($fieldmappings);
 
         // Populate temp sync table from remote database
         $now = time();
@@ -238,33 +239,45 @@ class totara_sync_source_pos_database extends totara_sync_source_pos {
                     $dbrow['timemodified'] = $parsed_date;
                 }
             }
-            // Custom fields - need to handle custom field formats like dates here
-            $customfieldkeys = preg_grep('/^customfield_.*/', $fields);
-            if (!empty($customfieldkeys)) {
-                $customfields = array();
-                foreach ($customfieldkeys as $key) {
-                    // Get shortname and check if we need to do field type processing
-                    $value = trim($extdbrow[$key]);
-                    if (!empty($value)) {
-                        $shortname = str_replace('customfield_', '', $key);
-                        $datatype = $DB->get_field('pos_type_info_field', 'datatype', array('shortname' => $shortname));
-                        switch ($datatype) {
-                            case 'datetime':
-                                // Try to parse the contents - if parse fails assume a unix timestamp and leave unchanged
-                                $parsed_date = totara_date_parse_from_format($csvdateformat, $value, true);
-                                if ($parsed_date) {
-                                    $value = $parsed_date;
-                                }
-                                break;
-                            default:
-                                break;
+            // Custom fields are special - needs to be json-encoded
+            if (!empty($this->customfields)) {
+                $cfield_data = array();
+                foreach (array_keys($this->customfields) as $cf) {
+                    if (!empty($this->config->{'import_'.$cf})) {
+                        if (!empty($this->config->{'fieldmapping_'.$cf})) {
+                            $value = trim($extdbrow[$this->config->{'fieldmapping_'.$cf}]);
+                        } else {
+                            $value = trim($extdbrow[$cf]);
                         }
+                        if (!empty($value)) {
+                            //get shortname and check if we need to do field type processing
+                            $shortname = str_replace("customfield_", "", $cf);
+                            $datatype = $DB->get_field('pos_type_info_field', 'datatype', array('shortname' => $shortname));
+                            switch ($datatype) {
+                                case 'datetime':
+                                    //try to parse the contents - if parse fails assume a unix timestamp and leave unchanged
+                                    $parsed_date = totara_date_parse_from_format($csvdateformat, $value, true);
+                                    if ($parsed_date) {
+                                        $value = $parsed_date;
+                                    }
+                                    break;
+                                case 'date':
+                                    //try to parse the contents - if parse fails assume a unix timestamp and leave unchanged
+                                    $parsed_date = totara_date_parse_from_format($csvdateformat, $value, true, 'UTC');
+                                    if ($parsed_date) {
+                                        $value = $parsed_date;
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        $cfield_data[$cf] = $value;
+                        unset($dbrow[$cf]);
                     }
-                    $customfields[$key] = $value;
-                    unset($dbrow[$key]);
                 }
-
-                $dbrow['customfields'] = json_encode($customfields);
+                $dbrow['customfields'] = json_encode($cfield_data);
+                unset($cfield_data);
             }
 
             $datarows[] = $dbrow;
