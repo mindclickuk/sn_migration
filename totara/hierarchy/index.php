@@ -145,71 +145,6 @@ $sql = "SELECT COUNT(hier.id)
 $matchcount = $DB->count_records_sql($sql, array('frameworkid' => $frameworkid));
 $filteredcount = $matchcount; // Set filteredcount to the same as matchcount, and replace later if filtering.
 
-$customfieldrss = array();
-
-// If a search is happening, or custom fields are being displayed, also join to custom fields.
-if ($searchactive || !$displaymode) {
-
-    $allcustomfields = $DB->get_records($shortprefix.'_type_info_field');
-
-    // Add the search criteria to the where.
-    if ($searchactive) {
-        // Extract quoted strings from query.
-        $keywords = totara_search_parse_keywords($search);
-
-        // Construct the sql that will search for the given keywords.
-        $searchfields = array('hier.fullname', 'hier.shortname', 'hier.description', 'hier.idnumber', 'cf.data');
-        list($searchsql, $searchparams) =
-            totara_search_get_keyword_where_clause($keywords, $searchfields, SQL_PARAMS_NAMED, 'search');
-
-        // Construct the full WHERE clause and add any params needed.
-        $rows = "SELECT DISTINCT hier.id
-                   {$from}
-                   LEFT JOIN {{$shortprefix}_type_info_data} cf
-                     ON hier.id = cf.{$prefix}id
-                  {$where}
-                    AND ($searchsql)";
-        $where = "WHERE hier.id IN ($rows)";
-        $params = array_merge($params, $searchparams);
-
-        // Count how many records there are (includes search criteria, if any).
-        $sql = "SELECT COUNT(hier.id)
-                  {$from}
-                 {$where}";
-        $filteredcount = $DB->count_records_sql($sql, $params);
-    }
-
-    // Chunk the custom fields for SELECT, in case there are lots of them (MySQL has maximum 61 JOINs).
-    $customfieldsbatches = array_chunk($allcustomfields, 50);
-
-    // Get each batch of custom fields in a separate records set. They will be combined when used.
-    foreach ($customfieldsbatches as $customfields) {
-        $select = "SELECT hier.id";
-        $joins = "";
-        foreach ($customfields as $customfield) {
-            // Add one join per custom field.
-            $fieldid = $customfield->id;
-            $select .= ", cf_{$fieldid}.id AS cf_{$fieldid}_itemid, cf_{$fieldid}.data AS cf_{$fieldid}";
-            $joins .= " LEFT JOIN {{$shortprefix}_type_info_data} cf_{$fieldid}
-                          ON hier.id = cf_{$fieldid}.{$prefix}id AND cf_{$fieldid}.fieldid = {$fieldid}";
-        }
-
-        $sql = "{$select}
-                 {$from}
-                 {$joins}
-                 {$where}
-                 {$orderby}";
-        $customfieldrss[] = $DB->get_recordset_sql($sql, $params, $table->get_page_start(), $table->get_page_size());
-    }
-}
-
-// Get the base set of columns.
-$sql = "SELECT hier.*
-             {$from}
-             {$where}
-             {$orderby}";
-$records = $DB->get_recordset_sql($sql, $params, $table->get_page_start(), $table->get_page_size());
-
 $headerdata = array();
 
 $row = new stdClass();
@@ -255,6 +190,74 @@ $table->define_baseurl($baseurl);
 $table->set_attribute('class', 'hierarchy-index fullwidth');
 $table->setup();
 $table->pagesize($perpage, $filteredcount);
+
+$customfieldrss = array();
+
+// If a search is happening, or custom fields are being displayed, also join to custom fields.
+if ($searchactive || !$displaymode) {
+
+    $allcustomfields = $DB->get_records($shortprefix.'_type_info_field');
+
+    // Add the search criteria to the where.
+    if ($searchactive) {
+        // Extract quoted strings from query.
+        $keywords = totara_search_parse_keywords($search);
+
+        // Construct the sql that will search for the given keywords.
+        $searchfields = array('hier.fullname', 'hier.shortname', 'hier.description', 'hier.idnumber', 'cf.data');
+        list($searchsql, $searchparams) =
+            totara_search_get_keyword_where_clause($keywords, $searchfields, SQL_PARAMS_NAMED, 'search');
+
+        // Construct the full WHERE clause and add any params needed.
+        $rows = "SELECT DISTINCT hier.id
+                   {$from}
+                   LEFT JOIN {{$shortprefix}_type_info_data} cf
+                     ON hier.id = cf.{$prefix}id
+                  {$where}
+                    AND ($searchsql)";
+        $where = "WHERE hier.id IN ($rows)";
+        $params = array_merge($params, $searchparams);
+
+        // Count how many records there are (includes search criteria, if any).
+        $sql = "SELECT COUNT(hier.id)
+                  {$from}
+                 {$where}";
+        $filteredcount = $DB->count_records_sql($sql, $params);
+
+        // Set filtered page size.
+        $table->pagesize($perpage, $filteredcount);
+    }
+
+    // Chunk the custom fields for SELECT, in case there are lots of them (MySQL has maximum 61 JOINs).
+    $customfieldsbatches = array_chunk($allcustomfields, 50);
+
+    // Get each batch of custom fields in a separate records set. They will be combined when used.
+    foreach ($customfieldsbatches as $customfields) {
+        $select = "SELECT hier.id";
+        $joins = "";
+        foreach ($customfields as $customfield) {
+            // Add one join per custom field.
+            $fieldid = $customfield->id;
+            $select .= ", cf_{$fieldid}.id AS cf_{$fieldid}_itemid, cf_{$fieldid}.data AS cf_{$fieldid}";
+            $joins .= " LEFT JOIN {{$shortprefix}_type_info_data} cf_{$fieldid}
+                          ON hier.id = cf_{$fieldid}.{$prefix}id AND cf_{$fieldid}.fieldid = {$fieldid}";
+        }
+
+        $sql = "{$select}
+                 {$from}
+                 {$joins}
+                 {$where}
+                 {$orderby}";
+        $customfieldrss[] = $DB->get_recordset_sql($sql, $params, $table->get_page_start(), $table->get_page_size());
+    }
+}
+
+// Get the base set of columns.
+$sql = "SELECT hier.*
+             {$from}
+             {$where}
+             {$orderby}";
+$records = $DB->get_recordset_sql($sql, $params, $table->get_page_start(), $table->get_page_size());
 
 echo $OUTPUT->container($OUTPUT->action_link(
     new moodle_url('/totara/hierarchy/framework/index.php', array('prefix' => $prefix)), '&laquo; ' .
