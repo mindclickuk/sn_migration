@@ -62,7 +62,7 @@ if ($USER->id != $userid && !totara_is_manager($userid) && !has_capability('tota
 }
 
 if ($USER->id != $userid) {
-    $strheading = get_string('recordoflearningfor', 'totara_core') . fullname($user, true);
+    $strheading = get_string('recordoflearningforname', 'totara_core', fullname($user, true));
     $usertype = 'manager';
 } else {
     $strheading = get_string('recordoflearning', 'totara_core');

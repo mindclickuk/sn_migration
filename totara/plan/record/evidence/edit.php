@@ -86,7 +86,7 @@ if ($USER->id == $userid) {
     $usertype = 'learner';
 } else {
     // Admin / manager
-    $strheading = get_string('recordoflearningfor', 'totara_core') . fullname($user, true);
+    $strheading = get_string('recordoflearningforname', 'totara_core', fullname($user, true));
     $usertype = 'manager';
 }
 
@@ -228,6 +228,8 @@ echo $OUTPUT->header();
 
 
 echo $OUTPUT->container_start('', 'dp-plan-content');
+
+echo $OUTPUT->heading($strheading);
 
 dp_print_rol_tabs($rolstatus, 'evidence', $userid);
 

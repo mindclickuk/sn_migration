@@ -83,7 +83,7 @@ $PAGE->set_pagelayout('report');
 $renderer = $PAGE->get_renderer('totara_reportbuilder');
 
 if ($USER->id != $userid) {
-    $strheading = get_string('recordoflearningfor', 'totara_core') . fullname($user, true);
+    $strheading = get_string('recordoflearningforname', 'totara_core', fullname($user, true));
 } else {
     $strheading = get_string('recordoflearning', 'totara_core');
 }

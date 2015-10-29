@@ -469,6 +469,7 @@ $string['recordnotcreated'] = 'Record could not be created';
 $string['recordnotupdated'] = 'Record could not be updated';
 $string['recordoflearning'] = 'Record of Learning';
 $string['recordoflearningfor'] = 'Record of Learning for ';
+$string['recordoflearningforname'] = 'Record of Learning for {$a}';
 $string['remotetotaralangnotavailable'] = 'Because Totara can not connect to download.totaralms.com, we are unable to do language pack installation automatically. Please download the appropriate zip file(s) from https://download.totaralms.com/lang/T{$a->totaraversion}/, copy them to your {$a->langdir} directory and unzip them manually.';
 $string['replaceareyousure'] = 'Are you sure you want to replace \'{$a->search}\' with \'{$a->replace}\'? (y/n)';
 $string['replacedevdebuggingrequired'] = 'Error, you must have developer debugging enabled to run this script.';
