@@ -403,7 +403,7 @@ function facetoface_update_instance($facetoface, $instanceflag = true) {
  * permanently delete the instance and any data that depends on it.
  */
 function facetoface_delete_instance($id) {
-    global $CFG, $DB;
+    global $DB;
 
     if (!$facetoface = $DB->get_record('facetoface', array('id' => $id))) {
         return false;
@@ -414,7 +414,7 @@ function facetoface_delete_instance($id) {
     $transaction = $DB->start_delegated_transaction();
 
     // Get sessions for the facetoface to delete.
-    $sessions = $DB->get_records('facetoface_sessions', array('facetoface' => $id));
+    $sessions = facetoface_get_sessions($id);
     foreach ($sessions as $session) {
         facetoface_delete_session($session);
     }
@@ -708,9 +708,11 @@ function facetoface_get_facetoface_menu() {
  * @param object $session Record from facetoface_sessions
  */
 function facetoface_delete_session($session) {
-    global $CFG, $DB;
+    global $DB;
 
     $facetoface = $DB->get_record('facetoface', array('id' => $session->facetoface));
+    // Get session status and if it is over, do not send any cancellation notifications, see below.
+    $sessionover = $session->datetimeknown && facetoface_has_session_started($session, time());
 
     // Cancel user signups (and notify users)
     $signedupusers = $DB->get_records_sql(
@@ -731,7 +733,9 @@ function facetoface_delete_session($session) {
     if ($signedupusers and count($signedupusers) > 0) {
         foreach ($signedupusers as $user) {
             if (facetoface_user_cancel($session, $user->userid, true)) {
-                facetoface_send_cancellation_notice($facetoface, $session, $user->userid);
+                if (!$sessionover) {
+                    facetoface_send_cancellation_notice($facetoface, $session, $user->userid);
+                }
             } else {
                 return false; // Cannot rollback since we notified users already
             }
@@ -742,12 +746,16 @@ function facetoface_delete_session($session) {
     $trainers = $DB->get_records("facetoface_session_roles", array("sessionid" => $session->id));
     if ($trainers and count($trainers) > 0) {
         foreach ($trainers as $trainer) {
-            facetoface_send_cancellation_notice($facetoface, $session, $trainer->userid, MDL_F2F_CONDITION_TRAINER_SESSION_CANCELLATION);
+            if (!$sessionover) {
+                facetoface_send_cancellation_notice($facetoface, $session, $trainer->userid, MDL_F2F_CONDITION_TRAINER_SESSION_CANCELLATION);
+            }
         }
     }
 
     // Notify managers who had reservations.
-    facetoface_notify_reserved_session_deleted($facetoface, $session);
+    if (!$sessionover) {
+        facetoface_notify_reserved_session_deleted($facetoface, $session);
+    }
 
     $transaction = $DB->start_delegated_transaction();
 
