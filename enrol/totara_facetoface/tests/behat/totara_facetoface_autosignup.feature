@@ -55,12 +55,12 @@ Feature: Users can enrol on courses that have autosignup enabled and get signed 
     And I follow "Add a new session"
     And I set the following fields to these values:
       | datetimeknown | Yes |
-      | timestart[0][day] | 1 |
+      | timestart[0][day] | 2 |
       | timestart[0][month] | 1 |
       | timestart[0][year] | 2020 |
       | timestart[0][hour] | 11 |
       | timestart[0][minute] | 00 |
-      | timefinish[0][day] | 1 |
+      | timefinish[0][day] | 2 |
       | timefinish[0][month] | 1 |
       | timefinish[0][year] | 2020 |
       | timefinish[0][hour] | 12 |

@@ -103,6 +103,7 @@ class enrol_totara_facetoface_signup_form extends moodleform {
             }
 
             $mform->addElement('static', 'signuptoenrol', get_string('signuptoenrol', 'enrol_totara_facetoface'));
+            $mform->addElement('static', 'signuperrorcontainer', '');
 
             $sessrows = array();
 
@@ -116,6 +117,7 @@ class enrol_totara_facetoface_signup_form extends moodleform {
 
             $sessionsavailable = false;
 
+            $force = count($sessrows) == 1 ? true : false;
             foreach ($sessrows as $facetofaceid => $sessions) {
                 $facetoface = $facetofaces[$facetofaceid];
 
@@ -126,15 +128,15 @@ class enrol_totara_facetoface_signup_form extends moodleform {
                     $msg = get_string('error:nopositionselectedactivity', 'facetoface');
                     $mform->addElement('html', html_writer::tag('div', $msg));
                 } else {
-                    $this->enrol_totara_facetoface_addsessrows($mform, $sessions, $facetoface);
+                    $this->enrol_totara_facetoface_addsessrows($mform, $sessions, $facetoface, $force);
                     $sessionsavailable = true;
                 }
                 $mform->addElement('html', html_writer::end_div());
             }
             $mform->addElement('html', html_writer::end_div());
 
-            if ($sessionsavailable) {
-                $mform->addRule('sid', null, 'required', null, 'client');
+            if ($sessionsavailable && count($sessrows) == 1) {
+                $mform->addRule("sid[$facetofaceid]", null, 'required', null, 'client');
             }
         }
 
@@ -176,8 +178,9 @@ class enrol_totara_facetoface_signup_form extends moodleform {
      * @param moodleform $mform
      * @param array $sessrows
      * @param array $facetofaces
+     * @param bool $force Option "Do not sign up" will not be displayed if true
      */
-    private function enrol_totara_facetoface_addsessrows($mform, $sessions, $facetoface) {
+    private function enrol_totara_facetoface_addsessrows($mform, $sessions, $facetoface, $force = false) {
         global $DB;
 
         $mform->addElement('html', html_writer::start_tag('table'));
@@ -191,13 +194,22 @@ class enrol_totara_facetoface_signup_form extends moodleform {
         $mform->addElement('html', html_writer::end_tag('thead'));
         $mform->addElement('html', html_writer::start_tag('tbody'));
 
+        // "Do not sign up" option.
+        if (!$force) {
+            $mform->addElement('html', html_writer::start_tag('tr') . html_writer::start_tag('td', array('class' => 'session-select')));
+            $mform->addElement('radio', "sid[{$facetoface->id}]", '', '', 0);
+            $mform->addElement('html', html_writer::end_tag('td') . html_writer::start_tag('td', array('class' => 'session-dates')));
+            $mform->addElement('html', get_string('donotsignup', 'enrol_totara_facetoface'));
+            $mform->addElement('html', html_writer::end_tag('td') . html_writer::end_tag('tr'));
+        }
+
         foreach ($sessions as $session) {
             $sid = $session->id;
 
             $mform->addElement('html', html_writer::start_tag('tr'));
 
             $mform->addElement('html', html_writer::start_tag('td', array('class' => 'session-select')));
-            $mform->addElement('radio', 'sid', '', '', $sid);
+            $mform->addElement('radio', "sid[{$facetoface->id}]", '', '', $sid);
             $mform->addElement('html', html_writer::end_tag('td'));
 
             // Dates/times.
@@ -286,11 +298,21 @@ class enrol_totara_facetoface_signup_form extends moodleform {
         $mform = $this->_form;
 
         if (!empty($data['sid'])) {
-            $elementid = 'selfapprovaltc' . $data['sid'];
-            if ($mform->elementExists($elementid)) {
-                if (empty($data[$elementid])) {
-                    $errors[$elementid] = get_string('required');
+            // User must submit to at least one session.
+            $nosid = true;
+            foreach ($data['sid'] as $sid) {
+                if ($sid > 0) {
+                    $nosid = false;
                 }
+                $elementid = 'selfapprovaltc' . $sid;
+                if ($mform->elementExists($elementid)) {
+                    if (empty($data[$elementid])) {
+                        $errors[$elementid] = get_string('required');
+                    }
+                }
+            }
+            if ($nosid) {
+                $errors['signuperrorcontainer'] = get_string('error:choosession', 'enrol_totara_facetoface');
             }
         }
         return $errors;

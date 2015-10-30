@@ -78,7 +78,7 @@ Feature: Users are forced to get manager approval where required
     When I log in as "student1"
     And I click on "Find Learning" in the totara menu
     And I follow "Course 1"
-    And I click on "[name$='sid']" "css_element" in the "1 January 2020" "table_row"
+    And I click on "[name^='sid']" "css_element" in the "1 January 2020" "table_row"
     And I press "Sign-up"
     Then I should see "Your booking has been completed but requires approval from your manager."
     And I log out
@@ -111,7 +111,7 @@ Feature: Users are forced to get manager approval where required
     When I log in as "student1"
     And I click on "Find Learning" in the totara menu
     And I follow "Course 1"
-    And I click on "[name$='sid']" "css_element" in the "1 January 2020" "table_row"
+    And I click on "[name^='sid']" "css_element" in the "1 January 2020" "table_row"
     And I press "Sign-up"
     Then I should see "Your booking has been completed but requires approval from your manager."
     And I log out

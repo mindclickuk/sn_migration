@@ -59,7 +59,7 @@ Feature: Users can auto-enrol themself in courses where face to face direct enro
     And I log in as "student1"
     And I click on "Find Learning" in the totara menu
     And I follow "Course 1"
-    And I click on "[name$='sid']" "css_element" in the "1 January 2020" "table_row"
+    And I click on "[name^='sid']" "css_element" in the "1 January 2020" "table_row"
     And I press "Sign-up"
     Then I should see "Topic 1"
 
@@ -87,6 +87,6 @@ Feature: Users can auto-enrol themself in courses where face to face direct enro
     And I should see "Courses" in the "Navigation" "block"
     And I click on "Courses" "link_or_button" in the "Navigation" "block"
     And I click on "Course 1" "link"
-    And I click on "[name$='sid']" "css_element" in the "1 January 2020" "table_row"
+    And I click on "[name^='sid']" "css_element" in the "1 January 2020" "table_row"
     And I press "Sign-up"
     Then I should see "Topic 1"

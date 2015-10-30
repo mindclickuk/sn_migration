@@ -1,5 +1,5 @@
 @enrol @totara @enrol_totara_facetoface
-Feature: Add a face to face
+Feature: Users can enrol themself in courses with selected position where face to face direct enrolment is allowed
   In order to run a seminar
   As a teacher
   I need to create a face to face activity
@@ -82,7 +82,7 @@ Feature: Add a face to face
     And I log in as "student1"
     And I click on "Courses" "link_or_button" in the "Navigation" "block"
     And I click on "Course 1" "link"
-    And I click on "[name$='sid']" "css_element" in the "1 January 2020" "table_row"
+    And I click on "[name^='sid']" "css_element" in the "1 January 2020" "table_row"
     And I set the following fields to these values:
       | Select a position | Position2 |
     And I press "Sign-up"
@@ -101,8 +101,8 @@ Feature: Add a face to face
     And I log in as "student1"
     And I click on "Find Learning" in the totara menu
     And I follow "Course 1"
+    And I click on "[name^='sid']" "css_element" in the "1 January 2020" "table_row"
     And I set the following fields to these values:
-      | sid               | Yes       |
       | Select a position | Position2 |
     And I press "Sign-up"
     Then I should see "Your booking has been completed."

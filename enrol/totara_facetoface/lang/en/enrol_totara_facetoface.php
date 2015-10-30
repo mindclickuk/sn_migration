@@ -47,6 +47,7 @@ The following placeholders may be included in the message:
 * Link to user\'s profile page {$a->profileurl}';
 $string['defaultrole'] = 'Default role assignment';
 $string['defaultrole_desc'] = 'Select role which should be assigned to users during use face-to-face enrolment';
+$string['donotsignup'] = 'Do not sign up';
 $string['enroldelete'] = 'Delete enrolment';
 $string['enroledit'] = 'Edit enrolment';
 $string['enrolenddate'] = 'End date';
@@ -58,6 +59,7 @@ $string['enrolperiod_desc'] = 'Default length of time that the enrolment is vali
 $string['enrolperiod_help'] = 'Length of time that the enrolment is valid, starting with the moment the user enrols themselves. If disabled, the enrolment duration will be unlimited.';
 $string['enrolstartdate'] = 'Start date';
 $string['enrolstartdate_help'] = 'If enabled, users can enrol themselves from this date onward only.';
+$string['error:choosession'] = 'Choose at least one session to enrol.';
 $string['expiredaction'] = 'Enrolment expiration action';
 $string['expiredaction_help'] = 'Select action to carry out when user enrolment expires. Please note that some user data and settings are purged from course during course unenrolment.';
 $string['expirymessageenrollerbody'] = 'Face-to-Face Direct enrolment in the course \'{$a->course}\' will expire within the next {$a->threshold} for the following users:
@@ -98,6 +100,7 @@ $string['sendcoursewelcomemessage_help'] = 'If enabled, users receive a welcome 
 $string['showhint'] = 'Show hint';
 $string['showhint_desc'] = 'Show first letter of the guest access key.';
 $string['signuptoenrol'] = 'To enrol in the session and course, choose a session below and click \'Sign-up\'. Manager approval may be required.';
+$string['signuppersessionresult'] = '{$a->facetoface}: {$a->message}';
 $string['status'] = 'Enable existing enrolments';
 $string['status_desc'] = 'Enable face-to-face enrolment method in new courses.';
 $string['status_help'] = 'If disabled all existing Face-to-face direct enrolments are suspended and new users can not enrol.';
