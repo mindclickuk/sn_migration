@@ -946,7 +946,7 @@ class enrol_totara_facetoface_plugin extends enrol_plugin {
             $params['facetofaceid'] = $facetofaceid;
         }
 
-        $sql .= " ORDER BY f2f.id";
+        $sql .= " ORDER BY f2f.id, ssn.id";
 
         $sessions = $DB->get_records_sql($sql, $params);
         $this->sessions[$cachekey] = array();
@@ -963,7 +963,7 @@ class enrol_totara_facetoface_plugin extends enrol_plugin {
             $sessids[] = $sessid;
         }
         list($idin, $params) = $DB->get_in_or_equal($sessids);
-        $sessiondates = $DB->get_records_select('facetoface_sessions_dates', "sessionid $idin", $params);
+        $sessiondates = $DB->get_records_select('facetoface_sessions_dates', "sessionid $idin", $params, 'timestart ASC');
         foreach ($sessiondates as $sessiondate) {
             $sessions[$sessiondate->sessionid]->sessiondates[] = $sessiondate;
         }
@@ -1003,8 +1003,16 @@ class enrol_totara_facetoface_plugin extends enrol_plugin {
                 $this->removednomanager = true;
                 continue;
             }
+
+            if ($session->datetimeknown) {
+                $session->timestartsort = $session->sessiondates[0]->timestart;
+            } else {
+                // If datetime is unknown make timestartsort in the future and store at the end of the records.
+                $session->timestartsort = PHP_INT_MAX;
+            }
             $this->sessions[$cachekey][$session->id] = $session;
         }
+        core_collator::asort_objects_by_property($this->sessions[$cachekey], 'timestartsort', core_collator::SORT_NUMERIC);
         return $this->sessions[$cachekey];
     }
 
