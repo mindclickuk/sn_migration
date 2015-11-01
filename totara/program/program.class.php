@@ -438,14 +438,10 @@ class program {
                     }
                 }
 
-                // Start bulk events for this program assignment.
-                $data = array('other' => array('programid' => $this->id, 'assignmentid' => $progassignment->id));
-                \totara_program\event\bulk_future_assignments_started::create_from_data($data)->trigger();
-                \totara_program\event\bulk_learner_assignments_started::create_from_data($data)->trigger();
-
                 // Set up some variables for use inside the foreach.
                 $context = context_program::instance($this->id); // Used for events.
                 $newassignusersbuffer = array(); // Buffer for doing bulk inserts.
+                $updateassignusersbuffer = array(); // Buffer for doing bulk events.
                 $futureassignusersbuffer = array(); // Buffer for doing bulk inserts.
 
                 // Check each user which should be assigned.
@@ -531,16 +527,9 @@ class program {
                                 array('programid' => $this->id, 'userid' => $user->id));
 
                             if ($userassignment->exceptionstatus == PROGRAM_EXCEPTION_NONE && $sendmessage) {
-                                // Trigger individual event for observers to deal with resolved exception from first assignment.
+                                // Trigger event for observers to deal with resolved exception from first assignment.
                                 // We don't add this to the new assignments buffer because we're not creating a new assignment.
-                                $event = \totara_program\event\program_assigned::create(
-                                    array(
-                                        'objectid' => $this->id,
-                                        'context' => $context,
-                                        'userid' => $user->id,
-                                    )
-                                );
-                                $event->trigger();
+                                $updateassignusersbuffer[$user->id] = 0;
                             }
                         } // Else no change or decrease, skipped. If we want to allow decrease then it should be added here.
                     } else {
@@ -574,6 +563,9 @@ class program {
 
                 // Flush future user assignments after program assignment loop finished.
                 if (!empty($futureassignusersbuffer)) {
+                    $eventdata = array('other' => array('programid' => $this->id, 'assignmentid' => $progassignment->id));
+                    \totara_program\event\bulk_future_assignments_started::create_from_data($eventdata)->trigger();
+
                     $this->create_future_assignments_bulk($this->id, $futureassignusersbuffer, $progassignment->id);
 
                     // Trigger each individual event.
@@ -588,18 +580,27 @@ class program {
                         $event->trigger();
                     }
 
+                    \totara_program\event\bulk_future_assignments_ended::create()->trigger();
                     unset($futureassignusersbuffer);
                 }
 
                 // Flush new user assignments after program assignment loop finished.
-                if (!empty($newassignusersbuffer)) {
-                    // We need to do this after every assignment so that the records will exist and be updated in case
-                    // the same user in present in a following assignment.
-                    $this->assign_learners_bulk($newassignusersbuffer, $progassignment);
+                if (!empty($newassignusersbuffer) || !empty($updateassignusersbuffer)) {
+                    $eventdata = array('other' => array('programid' => $this->id, 'assignmentid' => $progassignment->id));
+                    \totara_program\event\bulk_learner_assignments_started::create_from_data($eventdata)->trigger();
+
+                    // We need to do this after every program assignment so that the records will exist and be updated in case
+                    // the same user is present in a following assignment.
+                    if (!empty($newassignusersbuffer)) {
+                        $this->assign_learners_bulk($newassignusersbuffer, $progassignment);
+                    }
+
+                    // Both new and updated user assignments need to trigger the program_assigned event (note "+" to preserve keys).
+                    $allassignusers = $newassignusersbuffer + $updateassignusersbuffer;
 
                     // Trigger each individual event.
                     // If this is a certification, certification_event_handler creates the certif_completion records.
-                    foreach ($newassignusersbuffer as $userid => $data) {
+                    foreach ($allassignusers as $userid => $data) {
                         $event = \totara_program\event\program_assigned::create(
                             array(
                                 'objectid' => $this->id,
@@ -610,12 +611,10 @@ class program {
                         $event->trigger();
                     }
 
+                    \totara_program\event\bulk_learner_assignments_ended::create()->trigger();
                     unset($newassignusersbuffer);
                 }
 
-                // Finish bulk events for this program assignment.
-                \totara_program\event\bulk_future_assignments_ended::create()->trigger();
-                \totara_program\event\bulk_learner_assignments_ended::create()->trigger();
             } // End program assignments loop.
         }
 
