@@ -330,6 +330,11 @@ class program {
     public function update_learner_assignments($forcerun = false) {
         global $DB, $ASSIGNMENT_CATEGORY_CLASSNAMES;
 
+        // Clear the deferred flag before starting, so that any change made by users while this
+        // function is running will be processed the next time the deferred task is run.
+        $DB->set_field('prog', 'assignmentsdeferred', 0, array('id' => $this->id));
+        $this->assignmentsdeferred = 0;
+
         // Check program availability.
         if (!prog_check_availability($this->availablefrom, $this->availableuntil)) {
             return PROG_UPDATE_ASSIGNMENTS_UNAVAILABLE;
@@ -655,10 +660,6 @@ class program {
                                            FROM {prog_assignment} pa
                                           WHERE pa.id = {prog_future_user_assignment}.assignmentid)",
             array('programid' => $this->id));
-
-        // Change the flag to indicate that the update has occurred.
-        $DB->set_field('prog', 'assignmentsdeferred', 0, array('id' => $this->id));
-        $this->assignmentsdeferred = 0;
 
         return PROG_UPDATE_ASSIGNMENTS_COMPLETE;
     }
