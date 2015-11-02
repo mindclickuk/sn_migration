@@ -32,9 +32,6 @@ $blockinstanceid = required_param('blockinstanceid', PARAM_INTEGER);
 $returnurl = optional_param('returnurl', '', PARAM_LOCALURL);
 $courseid = optional_param('courseid', 0, PARAM_INTEGER);
 $linkid = optional_param('linkid', 0, PARAM_INTEGER);
-$linktitle = optional_param('linktitle', '', PARAM_TEXT);
-$linkurl = optional_param('linkurl', '', PARAM_URL);
-$addlink = optional_param('btnAddLink', false, PARAM_BOOL);
 $blockaction = optional_param('blockaction', '', PARAM_ALPHA);
 
 if ($courseid == SITEID) {
@@ -69,6 +66,19 @@ if ($blockinstanceid) {
 $baseurl = new moodle_url('/blocks/totara_quicklinks/managelinks.php', $urlparams);
 $PAGE->set_url($baseurl);
 
+$mform = new totara_quicklinks_add_quicklink_form(null, array('blockinstanceid' => $blockinstanceid));
+
+if ($data = $mform->get_data()) {
+    $link = new stdClass;
+    $link->userid = $USER->id;
+    $link->block_instance_id = $blockinstanceid;
+    $link->title = $data->linktitle;
+    $link->url = $data->linkurl;
+    $link->displaypos = $DB->count_records('block_quicklinks', array('block_instance_id' => $blockinstanceid)) > 0 ? $DB->get_field('block_quicklinks', 'MAX(displaypos)+1', array('block_instance_id' => $blockinstanceid)) : 0;
+    $DB->insert_record('block_quicklinks', $link);
+    totara_set_notification(get_string('newlinkadded', 'block_totara_quicklinks'), $baseurl, array('class' => 'notifysuccess'));
+}
+
 // Process any actions
 if ($blockaction == 'delete' && confirm_sesskey()) {
     $DB->delete_records('block_quicklinks', array('id'=>$linkid));
@@ -77,21 +87,6 @@ if ($blockaction == 'delete' && confirm_sesskey()) {
     $links = $DB->get_records_select('block_quicklinks', "block_instance_id=?", $sqlparams, 'displaypos');
     $links = array_keys($links);
     block_quicklinks_reorder_links($links);
-}
-
-if ($blockaction == 'add' && confirm_sesskey()) {
-    // Save the block link
-    if (empty($linkurl)) {
-        print_error('error:linkurlrequired', 'block_totara_quicklinks', $baseurl);
-    } else {
-        $link = new stdClass;
-        $link->userid = $USER->id;
-        $link->block_instance_id = $blockinstanceid;
-        $link->title = empty($linktitle) ? $linkurl : $linktitle;
-        $link->url = $linkurl;
-        $link->displaypos = $DB->count_records('block_quicklinks', array('block_instance_id' => $blockinstanceid)) > 0 ? $DB->get_field('block_quicklinks', 'MAX(displaypos)+1', array('block_instance_id' => $blockinstanceid)) : 0;
-        $DB->insert_record('block_quicklinks', $link);
-    }
 }
 
 if ($blockaction == 'moveup' && confirm_sesskey()) {
@@ -158,7 +153,6 @@ foreach ($links as $link) {
 }
 $table->print_html();
 
-$mform = new totara_quicklinks_add_quicklink_form(null, array('blockinstanceid' => $blockinstanceid));
 $mform->display();
 
 //If we have a return url then print back button

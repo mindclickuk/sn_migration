@@ -1,4 +1,5 @@
 <?php
+$string['addlink'] = 'Add link';
 $string['managelinks'] = 'Manage links';
 $string['pluginname'] = 'Quick Links';
 $string['totara_quicklinks:addinstance'] = 'Add a new quicklinks block';
@@ -15,6 +16,8 @@ $string['actions'] = 'Actions';
 $string['leaveblanktohide'] = 'Leave blank to hide';
 $string['links'] = 'Links';
 $string['accessdenied'] = 'Access denied';
+$string['invalidurl'] = 'Please enter a valid URL';
+$string['newlinkadded'] = 'Successfully added new quicklink';
 $string['error:deletequicklink'] = 'Error deleting quicklink';
 $string['error:linkurlrequired'] = 'Link URL is missing';
 $string['error:usernotfound'] = 'User not found';
