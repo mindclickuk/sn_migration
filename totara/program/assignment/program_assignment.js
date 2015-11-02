@@ -121,10 +121,13 @@ M.totara_programassignment = M.totara_programassignment || {
 
             // Modify the open function to dynamically get values from the category
             this.old_open = this.open;
+            this.original_default_url = this.default_url;
             this.open = function() {
-                var selected = this.category.get_itemids();
+                var selected = this.category.get_unsaveditemids();
                 selected = selected.join(",");
-                this.default_url += '&selected=' + selected;
+                var removed = this.category.get_removeditemids();
+                removed = removed.join(",");
+                this.default_url = this.original_default_url + '&selected=' + selected + '&removed=' + removed;
                 this.old_open();
             };
 
@@ -637,6 +640,8 @@ function category(id, name, find_url, title) {
     this.id = id;
     this.name = name;
     this.items = [];
+    this.unsaveditems = [];
+    this.removeditems = [];
     this.url = M.cfg.wwwroot + '/totara/program/assignment/';
     this.title = title;
     this.ajax_url = this.url + 'get_item.php?cat=' + this.name;
@@ -666,10 +671,18 @@ function category(id, name, find_url, title) {
         if (!isexistingitem) {
             this.main.num_added_items++;
             this.num_added_users += newitem.users;
+            this.unsaveditems.push(newitem);
         }
         else {
             this.initial_user_count += newitem.users;
         }
+
+        this.removeditems = $.grep(this.removeditems, function (element, x) {
+            if (element.itemid == newitem.itemid) {
+                return false;
+            }
+            return true;
+        });
 
         this.check_table_hidden_status();
     };
@@ -697,6 +710,15 @@ function category(id, name, find_url, title) {
             }
             return true;
         });
+
+        this.unsaveditems = $.grep(this.unsaveditems, function (element, x) {
+            if (element.itemid == item.itemid) {
+                return false;
+            }
+            return true;
+        });
+
+        this.removeditems.push(item);
 
         if (item.isexistingitem) {
             this.main.num_deleted_items++;
@@ -729,6 +751,28 @@ function category(id, name, find_url, title) {
         var itemids = [];
         for (var x in this.items) {
             itemids.push(this.items[x].itemid);
+        }
+        return itemids;
+    };
+
+    /**
+     * Gets a list of the item ids in this category that have not yet been saved to DB.
+     */
+    this.get_unsaveditemids = function() {
+        var itemids = [];
+        for (var x in this.unsaveditems) {
+            itemids.push(this.unsaveditems[x].itemid);
+        }
+        return itemids;
+    };
+
+    /**
+     * Gets a list of the item ids in this category that have been removed.
+     */
+    this.get_removeditemids = function() {
+        var itemids = [];
+        for (var x in this.removeditems) {
+            itemids.push(this.removeditems[x].itemid);
         }
         return itemids;
     };

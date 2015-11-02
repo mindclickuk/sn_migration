@@ -35,15 +35,23 @@ require_capability('totara/program:configureassignments', program_get_context($p
 
 // Already selected items
 $selected = optional_param('selected', array(), PARAM_SEQUENCE);
-if ($selected != false) {
-    list($selectedsql, $selectedparams) = $DB->get_in_or_equal(explode(',', $selected));
-    $selected = $DB->get_records_select('cohort', "id {$selectedsql}", $selectedparams, 'name, idnumber', 'id, name as fullname');
-}
+$removed = optional_param('removed', array(), PARAM_SEQUENCE);
+
+$selectedids = totara_prog_removed_selected_ids($programid, $selected, $removed, ASSIGNTYPE_COHORT);
 
 $items = $DB->get_records('cohort', null, 'name, idnumber');
 
+$allselected = $items;
+foreach ($items as $item) {
+    if (isset($selectedids[$item->id])) {
+        $allselected[$item->id]->fullname = $item->name;
+    } else {
+        unset($allselected[$item->id]);
+    }
+}
+
 // Don't let them remove the currently selected ones
-$unremovable = $selected;
+$unremovable = $allselected;
 
 
 ///
@@ -58,7 +66,7 @@ $dialog->searchtype = 'cohort';
 $dialog->items = $items;
 
 // Set disabled/selected items
-$dialog->selected_items = $selected;
+$dialog->selected_items = $allselected;
 
 // Set unremovable items
 $dialog->unremovable_items = $unremovable;

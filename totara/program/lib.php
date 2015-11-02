@@ -2306,3 +2306,46 @@ function totara_prog_extension_allowed($programid) {
 
     return $DB->get_field('prog', 'allowextensionrequests', array('id' => $programid));
 }
+
+/**
+ * Get a list of current assignments to a program, taking into account any that have not yet been saved
+ * to the database. The resulting array may need some extra processing, but can then be
+ * passed to a totara dialog as the selected_items.
+ *
+ * @param int $programid - id of the program
+ * @param string $selected - value of url param 'selected', will be ids separated by commas
+ * @param string $removed - value of url param 'removed', will be ids separated by commas
+ * @param int $assigntype - constant for assignment type, e.g. ASSIGNTYPE_INDIVIDUAL
+ * @return array of ids that are assigned or selected, with $removed ids taken out.
+ */
+function totara_prog_removed_selected_ids($programid, $selected, $removed, $assigntype) {
+    global $DB;
+
+    $selectedids = array();
+
+    // Get ids of items already assigned.
+    $alreadyassigned = $DB->get_records('prog_assignment', array('programid' => $programid, 'assignmenttype' => $assigntype), '', 'assignmenttypeid');
+    foreach ($alreadyassigned as $assignment) {
+        $selectedids[$assignment->assignmenttypeid] = $assignment->assignmenttypeid;
+    }
+
+    // Add selected but not yet saved to DB.
+    if (!empty($selected)) {
+        $selected = explode(',', $selected);
+        foreach ($selected as $selectedid) {
+            $selectedids[$selectedid] = $selectedid;
+        }
+    }
+
+    // Remove removed but not yet removed from DB.
+    if (!empty($removed)) {
+        $removed = explode(',', $removed);
+        foreach ($removed as $removedid) {
+            if (isset($selectedids[$removedid])) {
+                unset($selectedids[$removedid]);
+            }
+        }
+    }
+
+    return $selectedids;
+}
