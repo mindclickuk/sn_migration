@@ -4147,7 +4147,7 @@ abstract class rb_base_source {
      */
     protected function add_manager_fields_to_columns(&$columnoptions,
         $manager='manager') {
-        global $DB;
+        global $CFG, $DB;
 
         $usednamefields = totara_get_all_user_name_fields_join($manager, null, true);
         $allnamefields = totara_get_all_user_name_fields_join($manager);
@@ -4197,6 +4197,44 @@ abstract class rb_base_source {
                   'dbdatatype' => 'char',
                   'outputformat' => 'text')
         );
+        $columnoptions[] = new rb_column_option(
+            'user',
+            'manageremail',
+            get_string('usersmanageremail', 'totara_reportbuilder'),
+            // use CASE to include/exclude email in SQL
+            // so search won't reveal hidden results
+            "CASE WHEN $manager.maildisplay <> 1 THEN '-' ELSE $manager.email END",
+            array(
+                'joins' => $manager,
+                'displayfunc' => 'user_email',
+                'extrafields' => array(
+                    'emailstop' => "$manager.emailstop",
+                    'maildisplay' => "$manager.maildisplay",
+                ),
+                'dbdatatype' => 'char',
+                'outputformat' => 'text'
+            )
+        );
+        // Only include this column if email is among fields allowed
+        // by showuseridentity setting.
+        if (!empty($CFG->showuseridentity) &&
+            in_array('email', explode(',', $CFG->showuseridentity))) {
+            $columnoptions[] = new rb_column_option(
+                'user',
+                'manageremailunobscured',
+                get_string('usersmanageremailunobscured', 'totara_reportbuilder'),
+                "$manager.email",
+                array(
+                    'joins' => $manager,
+                    'displayfunc' => 'user_email_unobscured',
+                    // Users must have viewuseridentity to see the
+                    // unobscured email address.
+                    'capability' => 'moodle/site:viewuseridentity',
+                    'dbdatatype' => 'char',
+                    'outputformat' => 'text'
+                )
+            );
+        }
         return true;
     }
 
@@ -4210,6 +4248,7 @@ abstract class rb_base_source {
      * @return True
      */
     protected function add_manager_fields_to_filters(&$filteroptions) {
+        global $CFG;
         $filteroptions[] = new rb_filter_option(
             'user',
             'managername',
@@ -4228,6 +4267,22 @@ abstract class rb_base_source {
             get_string('usersmanageridnumber', 'totara_reportbuilder'),
             'text'
         );
+        $filteroptions[] = new rb_filter_option(
+            'user',
+            'manageremail',
+            get_string('usersmanageremail', 'totara_reportbuilder'),
+            'text'
+        );
+        // Only include this filter if email is among fields allowed
+        // by showuseridentity setting.
+        if (!empty($CFG->showuseridentity) && in_array('email', explode(',', $CFG->showuseridentity))) {
+            $filteroptions[] = new rb_filter_option(
+                'user',
+                'manageremailunobscured',
+                get_string('usersmanageremailunobscured', 'totara_reportbuilder'),
+                'text'
+            );
+        }
         return true;
     }
 
