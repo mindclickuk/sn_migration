@@ -70,23 +70,16 @@ class block_totara_certifications extends block_base {
             $link = html_writer::link($url, $renewal->fullname, array('title' => $renewal->fullname));
             $certification->description = $link;
 
-            if ($renewal->certifpath == CERTIFPATH_CERT) {
-                $prog_completion = $DB->get_record('prog_completion',
-                                array('programid' => $renewal->pid, 'userid' => $USER->id, 'coursesetid' => 0));
-                if ($prog_completion) {
-                    $duedatestr = (empty($prog_completion->timedue) || $prog_completion->timedue == COMPLETION_TIME_NOT_SET)
-                        ? get_string('duedatenotset', 'totara_program')
-                        : userdate($prog_completion->timedue, get_string('strftimedate', 'langconfig'));
-                } else {
-                    $duedatestr =  get_string('duedatenotset', 'totara_program');
-                }
-                $certification->date = $duedatestr;
-                $certification->due = true;
+            $prog_completion = $DB->get_record('prog_completion',
+                            array('programid' => $renewal->pid, 'userid' => $USER->id, 'coursesetid' => 0));
+            if ($prog_completion) {
+                $duedatestr = (empty($prog_completion->timedue) || $prog_completion->timedue == COMPLETION_TIME_NOT_SET)
+                    ? get_string('duedatenotset', 'totara_program')
+                    : userdate($prog_completion->timedue, get_string('strftimedate', 'langconfig'));
             } else {
-                $certification->date = userdate($renewal->timewindowopens, get_string('strftimedate', 'langconfig'));
-                $certification->due = false;
+                $duedatestr =  get_string('duedatenotset', 'totara_program');
             }
-
+            $certification->date = $duedatestr;
             $certifications[] = $certification;
         }
         // Display 'required' list, certifications only.

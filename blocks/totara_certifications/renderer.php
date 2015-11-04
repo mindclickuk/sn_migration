@@ -58,7 +58,7 @@ class block_totara_certifications_renderer extends plugin_renderer_base {
     public function display_certification($certification) {
         $output = html_writer::start_tag('li', array('class' => 'certification row-fluid'));
         $output .= html_writer::tag('div', $certification->description, array('class' => 'span8 name'));
-        $output .= html_writer::tag('div', $certification->date, array('class' => 'span4 due ' . ($certification->due ? 'timedue' : 'timewindowopens')));
+        $output .= html_writer::tag('div', $certification->date, array('class' => 'span4 due timedue'));
         $output .= html_writer::end_tag('li');
         return $output;
     }
