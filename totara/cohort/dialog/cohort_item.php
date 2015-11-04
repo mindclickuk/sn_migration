@@ -40,14 +40,17 @@ $instanceid = required_param('instanceid', PARAM_INT);
 $itemids = required_param('itemid', PARAM_SEQUENCE);
 $itemids = explode(',', $itemids);
 
+$contextsystem = context_system::instance();
 // Check user capabilities.
 if ($instancetype === COHORT_ASSN_ITEMTYPE_COURSE) {
     $context = context_course::instance($instanceid);
+} else if ($instancetype === COHORT_ASSN_ITEMTYPE_CATEGORY) {
+    $context = context_coursecat::instance($instanceid);
 } else if ($instancetype === COHORT_ASSN_ITEMTYPE_PROGRAM ||
            $instancetype === COHORT_ASSN_ITEMTYPE_CERTIF) {
     $context = context_program::instance($instanceid);
 } else {
-    $context = context_system::instance();
+    $context = $contextsystem;
 }
 
 if ((!has_capability('moodle/cohort:view', $context)) && (!has_capability('moodle/cohort:manage', $contextsystem))) {
