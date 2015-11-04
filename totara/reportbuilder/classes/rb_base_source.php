@@ -3864,6 +3864,21 @@ abstract class rb_base_source {
                     break;
 
                 case 'menu':
+                    $default = $record->defaultdata;
+                    if ($default !== '' and $default !== null) {
+                        // Note: there is no safe way to inject the default value into the query, use extra join instead.
+                        $fieldjoin = $joinname . '_fielddefault';
+                        $joinlist[] = new rb_join(
+                            $fieldjoin,
+                            'INNER',
+                            "{{$fieldtable}}",
+                            "{$fieldjoin}.id = {$id}",
+                            REPORT_BUILDER_RELATION_MANY_TO_ONE
+                        );
+                        $columnsql = "COALESCE({$columnsql}, {$fieldjoin}.defaultdata)";
+                        $column_options['joins'] = (array)$column_options['joins'];
+                        $column_options['joins'][] = $fieldjoin;
+                    }
                     $filtertype = 'menuofchoices';
                     $filter_options['selectchoices'] = $this->list_to_array($record->param1,"\n");
                     $filter_options['simplemode'] = true;
@@ -3894,6 +3909,21 @@ abstract class rb_base_source {
                     break;
 
                 case 'text':
+                    $default = $record->defaultdata;
+                    if ($default !== '' and $default !== null) {
+                        // Note: there is no safe way to inject the default value into the query, use extra join instead.
+                        $fieldjoin = $joinname . '_fielddefault';
+                        $joinlist[] = new rb_join(
+                            $fieldjoin,
+                            'INNER',
+                            "{{$fieldtable}}",
+                            "{$fieldjoin}.id = {$id}",
+                            REPORT_BUILDER_RELATION_MANY_TO_ONE
+                        );
+                        $columnsql = "COALESCE({$columnsql}, {$fieldjoin}.defaultdata)";
+                        $column_options['joins'] = (array)$column_options['joins'];
+                        $column_options['joins'][] = $fieldjoin;
+                    }
                     $column_options['dbdatatype'] = 'text';
                     $column_options['outputformat'] = 'text';
                     break;
