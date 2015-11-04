@@ -629,10 +629,11 @@ class completion_info {
      *   result. For manual events, COMPLETION_COMPLETE or COMPLETION_INCOMPLETE
      *   must be used; these directly set the specified state.
      * @param int $userid User ID to be updated. Default 0 = current user
+     * @param stdClass $current the current data record, if known (prevents loop when course_modules_completion record is missing)
      * @return void
      */
-    public function update_state($cm, $possibleresult=COMPLETION_UNKNOWN, $userid=0) {
-        global $USER, $SESSION, $DB;
+    public function update_state($cm, $possibleresult = COMPLETION_UNKNOWN, $userid = 0, $current = null) {
+        global $USER, $DB;
 
         // Do nothing if completion is not enabled for that activity
         if (!$this->is_enabled($cm)) {
@@ -642,7 +643,9 @@ class completion_info {
         // Get current value of completion state and do nothing if it's same as
         // the possible result of this change. If the change is to COMPLETE and the
         // current value is one of the COMPLETE_xx subtypes, ignore that as well
-        $current = $this->get_data($cm, false, $userid);
+        if (empty($current)) {
+            $current = $this->get_data($cm, false, $userid);
+        }
         if ($possibleresult == $current->completionstate ||
             ($possibleresult == COMPLETION_COMPLETE &&
                 ($current->completionstate == COMPLETION_COMPLETE_PASS ||
@@ -1253,10 +1256,21 @@ class completion_info {
                     $data->id              = 0;
                     $data->coursemoduleid  = $othercm->id;
                     $data->userid          = $userid;
-                    $data->completionstate = 0;
+                    $data->completionstate = COMPLETION_INCOMPLETE;
                     $data->viewed          = 0;
                     $data->timemodified    = 0;
                     $data->timecompleted   = null;
+
+                    // TOTARA - Check the criteria in case it should be complete.
+                    $coursemodule = $DB->get_record('course_modules' , array('id' => $cm->id));
+                    if ($coursemodule && $this->internal_get_state($coursemodule, $userid, $data) != COMPLETION_INCOMPLETE) {
+                        // It isn't incomplete for some reason. Process it now, then re-get the new data.
+                        $this->update_state($coursemodule, COMPLETION_UNKNOWN, $userid, $data);
+                        $newdata = $DB->get_record('course_modules_completion', array('coursemoduleid'=>$cm->id, 'userid'=>$userid));
+                        if (!empty($newdata)) {
+                            $data = $newdata;
+                        }
+                    }
                 }
                 $SESSION->completioncache[$this->course->id][$othercm->id] = $data;
             }
@@ -1276,10 +1290,21 @@ class completion_info {
                 $data->id              = 0;
                 $data->coursemoduleid  = $cm->id;
                 $data->userid          = $userid;
-                $data->completionstate = 0;
+                $data->completionstate = COMPLETION_INCOMPLETE;
                 $data->viewed          = 0;
                 $data->timemodified    = 0;
                 $data->timecompleted   = null;
+
+                // TOTARA - Check the criteria in case it should be complete.
+                $coursemodule = $DB->get_record('course_modules' , array('id' => $cm->id));
+                if ($coursemodule && $this->internal_get_state($coursemodule, $userid, $data) != COMPLETION_INCOMPLETE) {
+                    // It isn't incomplete for some reason. Process it now, then re-get the new data.
+                    $this->update_state($coursemodule, COMPLETION_UNKNOWN, $userid, $data);
+                    $newdata = $DB->get_record('course_modules_completion', array('coursemoduleid'=>$cm->id, 'userid'=>$userid));
+                    if (!empty($newdata)) {
+                        $data = $newdata;
+                    }
+                }
             }
 
             // Put in cache

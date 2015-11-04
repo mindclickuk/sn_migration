@@ -262,6 +262,7 @@ $string['eventmenuitemupdated'] = 'Menu item updated';
 $string['eventmodulecompletion'] = 'Activity completion';
 $string['eventmodulecompletionreset'] = 'Module completion reset';
 $string['eventmodulecompletionunlocked'] = 'Module completion unlocked';
+$string['eventmodulecompletioncriteriaupdated']= 'Module completion criteria updated';
 $string['eventmyreportviewed'] = 'User viewed his reports';
 $string['eventremindercreated'] = "Reminder was created";
 $string['eventreminderdeleted'] = "Reminder was deleted";

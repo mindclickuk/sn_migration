@@ -438,7 +438,7 @@ class core_completionlib_testcase extends advanced_testcase {
             ->will($this->returnValue(false));
         $result=$c->get_data($cm, true, 123);
         $this->assertEquals((object)array(
-            'id'=>'0', 'coursemoduleid'=>13, 'userid'=>123, 'completionstate'=>0,
+            'id'=>'0', 'coursemoduleid'=>13, 'userid'=>123, 'completionstate'=>COMPLETION_INCOMPLETE,
             'viewed'=>0, 'timemodified'=>0, 'timecompleted'=>null), $result);
         $this->assertFalse(isset($SESSION->completioncache));
 
@@ -524,7 +524,7 @@ class core_completionlib_testcase extends advanced_testcase {
         $this->assertTrue(time()-$SESSION->completioncache[42]['updated']<2);
         $SESSION->completioncache[42]['updated'] = $now;
         $this->assertEquals(array(42 => array(13 => $basicrecord, 14 => (object)array(
-            'id' => 0, 'coursemoduleid' => 14, 'userid' => 314159, 'completionstate' => 0,
+            'id' => 0, 'coursemoduleid' => 14, 'userid' => 314159, 'completionstate' => COMPLETION_INCOMPLETE,
             'viewed' => 0, 'timemodified' => 0, 'timecompleted' => null), 'updated' => $now)), $SESSION->completioncache);
     }
 

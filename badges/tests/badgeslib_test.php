@@ -81,8 +81,8 @@ class core_badges_badgeslib_testcase extends advanced_testcase {
         $manplugin->enrol_user($maninstance, $this->user->id, $studentrole->id);
         $this->assertEquals(1, $DB->count_records('user_enrolments'));
 
-        $completionauto = array('completion' => COMPLETION_TRACKING_AUTOMATIC);
-        $this->module = $this->getDataGenerator()->create_module('forum', array('course' => $this->course->id), $completionauto);
+        $completionsettings = array('completion' => COMPLETION_TRACKING_AUTOMATIC, 'completionview' => 1);
+        $this->module = $this->getDataGenerator()->create_module('forum', array('course' => $this->course->id), $completionsettings);
 
         // Build badge and criteria.
         $fordb->type = BADGE_TYPE_COURSE;
@@ -347,20 +347,16 @@ class core_badges_badgeslib_testcase extends advanced_testcase {
         $badge->review_all_criteria();
         $this->assertFalse($badge->is_issued($this->user->id));
 
-        // Set completion for forum activity.
-        $c = new completion_info($this->course);
-        $activities = $c->get_activities();
-        $this->assertEquals(1, count($activities));
-        $this->assertTrue(isset($activities[$this->module->cmid]));
-        $this->assertEquals($activities[$this->module->cmid]->name, $this->module->name);
+        // Mark the user as complete by viewing the forum.
+        $completioninfo = new completion_info($this->course);
+        $coursemodules = get_coursemodules_in_course('forum', $this->course->id);
 
-        $current = $c->get_data($activities[$this->module->cmid], false, $this->user->id);
-        $current->completionstate = COMPLETION_COMPLETE;
-        $current->timemodified = time();
-        $current->timecompleted = null;
         $sink = $this->redirectEmails();
-        $c->internal_set_data($activities[$this->module->cmid], $current);
+        foreach ($coursemodules as $cm) {
+            $completioninfo->set_module_viewed($cm, $this->user->id);
+        }
         $this->assertCount(1, $sink->get_messages());
+
         $sink->close();
 
         // Check if badge is awarded.
