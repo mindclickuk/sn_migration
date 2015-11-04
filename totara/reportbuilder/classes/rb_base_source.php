@@ -4152,11 +4152,15 @@ abstract class rb_base_source {
         $usednamefields = totara_get_all_user_name_fields_join($manager, null, true);
         $allnamefields = totara_get_all_user_name_fields_join($manager);
 
+        // The manager full names are formatted in PHP but we need something for SQL searches,
+        // for no manager return NULL instead of random spaces.
+        $rawfullnamefield = "CASE WHEN {$manager}.id IS NULL THEN NULL ELSE " . $DB->sql_concat_join("' '", $usednamefields) . " END";
+
         $columnoptions[] = new rb_column_option(
             'user',
             'managername',
             get_string('usersmanagername', 'totara_reportbuilder'),
-            $DB->sql_concat_join("' '", $usednamefields),
+            $rawfullnamefield,
             array('joins' => $manager,
                   'dbdatatype' => 'char',
                   'outputformat' => 'text',
