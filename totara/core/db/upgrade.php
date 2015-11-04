@@ -1512,5 +1512,17 @@ function xmldb_totara_core_upgrade($oldversion) {
         totara_upgrade_mod_savepoint(true, 2015103000, 'totara_core');
     }
 
+    // TL-7695 Mark all incomplete users in all courses as needing reaggregation. This will clean up
+    // completion data for users affected by the problem fixed by TL-7695 and any other problems.
+    if ($oldversion < 2015103001) {
+        $sql = "UPDATE {course_completions}
+                   SET reaggregate = :now
+                 WHERE status < :statuscomplete";
+        $params = array('now' => time(), 'statuscomplete' => 50);
+        $DB->execute($sql, $params);
+
+        totara_upgrade_mod_savepoint(true, 2015103001, 'totara_core');
+    }
+
     return true;
 }

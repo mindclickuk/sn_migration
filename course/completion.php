@@ -193,7 +193,15 @@ if ($form->is_cancelled()) {
     );
     $event->trigger();
 
-    // Bulk start users (creates course_completion records for all active participants).
+    // Update reaggregation flag on all existing user course_completion records, so they'll be updated on cron.
+    $sql = "UPDATE {course_completions}
+               SET reaggregate = :now
+             WHERE course = :courseid
+               AND status < :statuscomplete";
+    $params = array('now' => time(), 'courseid' => $course->id, 'statuscomplete' => COMPLETION_STATUS_COMPLETE);
+    $DB->execute($sql, $params);
+
+    // Bulk start users (creates course_completion records for all active participants who don't already have records).
     completion_start_user_bulk($course->id);
 
     // Redirect to the course main page.
