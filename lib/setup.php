@@ -811,6 +811,17 @@ if (AJAX_SCRIPT) {
     @header('Content-type: text/html; charset=utf-8');
 }
 
+// Totara: force https-only-access if requested, note you cannot easily disable this setting later!
+if (!empty($CFG->stricttransportsecurity)) {
+    if (strpos($CFG->wwwroot, 'https:') === 0) {
+        header('Strict-Transport-Security: max-age=16070400'); // To be remembered for 186 days.
+    }
+}
+// Totara: prevent embedding of server files in external PDF/Flash.
+if (!empty($CFG->permittedcrossdomainpolicies)) {
+    header('X-Permitted-Cross-Domain-Policies: ' . $CFG->permittedcrossdomainpolicies);
+}
+
 // Initialise some variables that are supposed to be set in config.php only.
 if (!isset($CFG->filelifetime)) {
     $CFG->filelifetime = 60*60*6;

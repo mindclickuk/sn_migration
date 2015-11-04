@@ -112,8 +112,11 @@ if ($hassiteconfig) { // speedup for non-admins, add all caps used on this page
     $temp->add(new admin_setting_configcheckbox('loginhttps', new lang_string('loginhttps', 'admin'), new lang_string('configloginhttps', 'admin'), 0));
     $temp->add(new admin_setting_configcheckbox('cookiesecure', new lang_string('cookiesecure', 'admin'), new lang_string('configcookiesecure', 'admin'), 0));
     $temp->add(new admin_setting_configcheckbox('cookiehttponly', new lang_string('cookiehttponly', 'admin'), new lang_string('configcookiehttponly', 'admin'), 0));
+    $temp->add(new admin_setting_configcheckbox('stricttransportsecurity', new lang_string('stricttransportsecurity', 'totara_core'), new lang_string('stricttransportsecurity_desc', 'totara_core'), 0));
     $temp->add(new admin_setting_configcheckbox('securereferrers', new lang_string('securereferrers', 'totara_core'), new lang_string('securereferrers_desc', 'totara_core'), 0));
     $temp->add(new admin_setting_configcheckbox('allowframembedding', new lang_string('allowframembedding', 'admin'), new lang_string('allowframembedding_help', 'admin'), 0));
+    $options = array('' => new lang_string('default'), 'none' => 'none', 'master-only' => 'master-only');
+    $temp->add(new admin_setting_configselect('permittedcrossdomainpolicies', new lang_string('permittedcrossdomainpolicies', 'totara_core'), new lang_string('permittedcrossdomainpolicies_desc', 'totara_core'), '', $options));
     $temp->add(new admin_setting_configcheckbox('loginpasswordautocomplete', new lang_string('loginpasswordautocomplete', 'admin'), new lang_string('loginpasswordautocomplete_help', 'admin'), 0));
     $ADMIN->add('security', $temp);
 
