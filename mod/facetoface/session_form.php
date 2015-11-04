@@ -132,7 +132,6 @@ class mod_facetoface_session_form extends moodleform {
         $repeatarray[] = &$mform->createElement('date_time_selector', 'timefinish', get_string('timefinish', 'facetoface'), array('defaulttime' => $defaultfinish, 'showtimezone' => true));
 
         $checkboxelement = &$mform->createElement('checkbox', 'datedelete', '', get_string('dateremove', 'facetoface'));
-        unset($checkboxelement->_attributes['id']); // necessary until MDL-20441 is fixed
         $repeatarray[] = $checkboxelement;
         $repeatarray[] = &$mform->createElement('html', html_writer::empty_tag('br')); // spacer
 
@@ -141,6 +140,7 @@ class mod_facetoface_session_form extends moodleform {
         $repeatoptions = array();
         $repeatoptions['timestart']['disabledif'] = array('datetimeknown', 'eq', 0);
         $repeatoptions['timefinish']['disabledif'] = array('datetimeknown', 'eq', 0);
+        $repeatoptions['datedelete']['disabledif'] = array('datetimeknown', 'eq', 0);
         if ($displaytimezones) {
             $repeatoptions['sessiontimezone']['disabledif'] = array('datetimeknown', 'eq', 0);
             $repeatoptions['sessiontimezone']['default'] = $this->_customdata['defaulttimezone'];
@@ -407,11 +407,20 @@ class mod_facetoface_session_form extends moodleform {
         $dates = array();
         $dateids = $data['sessiondateid'];
         $datecount = count($dateids);
+        $deletecount = 0;
         for ($i=0; $i < $datecount; $i++) {
+            if (!$data['datetimeknown']) {
+                // No validation if date unknown (wait-listed)!
+                continue;
+            }
+            if (!empty($data['datedelete'][$i])) {
+                // Ignore dates marked for deletion.
+                $deletecount++;
+                continue;
+            }
             $starttime = $data["timestart[$i]"];
             $endtime = $data["timefinish[$i]"];
-            $removecheckbox = empty($data["datedelete"]) ? array() : $data["datedelete"];
-            if ($starttime > $endtime && !isset($removecheckbox[$i])) {
+            if ($starttime > $endtime) {
                 $errstr = get_string('error:sessionstartafterend', 'facetoface');
                 $errors['timestart['.$i.']'] = $errstr;
                 $errors['timefinish['.$i.']'] = $errstr;
@@ -436,25 +445,15 @@ class mod_facetoface_session_form extends moodleform {
             $dates[] = $date;
         }
 
-        $datefound = false;
-        if (!empty($data['datetimeknown'])) {
-            for ($i = 0; $i < $data['date_repeats']; $i++) {
-                if (empty($data['datedelete'][$i])) {
-                    $datefound = true;
-                    break;
-                }
-            }
-
-            if (!$datefound) {
-                $errors['datedelete[0]'] = get_string('validation:needatleastonedate', 'facetoface');
-            }
+        if ($data['datetimeknown'] and $datecount == $deletecount) {
+            $errors['datedelete[0]'] = get_string('validation:needatleastonedate', 'facetoface');
         }
 
         // Check the availabilty of trainers if scheduling not allowed
         $trainerdata = !empty($data['trainerrole']) ? $data['trainerrole'] : array();
         $allowconflicts = !empty($data['allowconflicts']);
 
-        if ($datefound && !$allowconflicts && is_array($trainerdata)) {
+        if ($dates && !$allowconflicts && is_array($trainerdata)) {
             $wheresql = '';
             $whereparams = array();
             if (!empty($this->_customdata['s'])) {
@@ -534,12 +533,7 @@ class mod_facetoface_session_form extends moodleform {
                 $errors['cutoff'] = get_string('error:cutofftooclose', 'facetoface');
             }
 
-            foreach ($dates as $dateid => $date) {
-                // If the date is being deleted then we don't need to test against it.
-                if (!empty($data['datedelete'][$dateid])) {
-                    continue;
-                }
-
+            foreach ($dates as $date) {
                 $cutofftimestamp = $date->timestart - $cutoff;
                 if ($cutofftimestamp < time()) {
                     $errors['cutoff'] = get_string('error:cutofftoolate', 'facetoface');
