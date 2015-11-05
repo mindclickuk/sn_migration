@@ -331,7 +331,10 @@ class facetoface_notification extends data_object {
                                     AND    fss1.timecreated < '.$scheduledtimesql.')';
 
                 // We get the status code that's in the same record as the above timestamp.
-                $statuscodesql = '(SELECT fss2.statuscode
+                // We use Max as booked and approved statuses can be created at the same time and this will favour booked.
+                // Other statuses created at the same time are unlikely,
+                // but max will prevent the subquery returning multiple values.
+                $statuscodesql = '(SELECT MAX(fss2.statuscode)
                                    FROM   {facetoface_signups_status} fss2
                                    WHERE  fss2.signupid = si.id
                                    AND    fss2.timecreated = '.$timecreatedsql.')';
