@@ -132,6 +132,9 @@ abstract class tabexport_writer {
     public static function get_export_options() {
         $result = array();
         foreach (self::get_export_classes() as $type => $class) {
+            if (!$class::is_ready()) {
+                continue;
+            }
             $result[$type] = $class::get_export_option_name();
         }
 
@@ -181,5 +184,13 @@ abstract class tabexport_writer {
         }
         $format = clean_param($format, PARAM_ALPHANUM);
         return strtolower($format);
+    }
+
+    /**
+     * Is this plugin fully configured and ready to use?
+     * @return bool
+     */
+    public static function is_ready() {
+        return true;
     }
 }
