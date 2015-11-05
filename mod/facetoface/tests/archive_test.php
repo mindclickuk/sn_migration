@@ -104,11 +104,17 @@ class mod_facetoface_archive_testcase extends advanced_testcase {
         $manager = $this->getDataGenerator()->create_user();
         $this->assertEquals(4, $DB->count_records('user')); // Guest + Admin + test users.
 
+        // Create a session date in the past, future sessions should not be archived.
+        $sessdate = new stdClass();
+        $sessdate->timestart = time() - (7 * DAYSECS);
+        $sessdate->timefinish = $sessdate->timestart + (8 * HOURSECS);
+        $sessdate->sessiontimezone = 'Pacific/Auckland';
+
         // Create a facetoface session.
         $this->assertEquals(0, $DB->count_records('facetoface_sessions'));
         $session = new stdClass();
         $session->facetoface = $facetoface->id;
-        $session->datetimeknown = 0;
+        $session->datetimeknown = 1;
         $session->capacity = 10;
         $session->allowoverbook = 0;
         $session->duration = 0;
@@ -117,7 +123,8 @@ class mod_facetoface_archive_testcase extends advanced_testcase {
         $session->usermodified = $manager->id;
         $session->roomid = 0;
         $session->waitlisteveryone = 0;
-        facetoface_add_session($session, array());
+        $sessid = facetoface_add_session($session, array($sessdate));
+        $session = facetoface_get_session($sessid); // Reload to get the correct dates + id;
         $this->assertEquals(1, $DB->count_records('facetoface_sessions'));
 
         // Enrol user on course.
@@ -140,7 +147,7 @@ class mod_facetoface_archive_testcase extends advanced_testcase {
         // Trigger the completion - manager marks signup fully attended.
         $this->assertEquals(1, $DB->count_records('facetoface_signups_status'));
         $this->assertEquals(1, $DB->count_records('facetoface_signups_status', array('superceded' => 0)));
-        $this->assertEquals(MDL_F2F_STATUS_WAITLISTED, $DB->get_field('facetoface_signups_status', 'statuscode', array('superceded' => 0)));
+        $this->assertEquals(MDL_F2F_STATUS_BOOKED, $DB->get_field('facetoface_signups_status', 'statuscode', array('superceded' => 0)));
         $data = new stdClass();
         $data->s = $session->id;
         $signup = $DB->get_record('facetoface_signups', array());

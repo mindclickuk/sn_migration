@@ -5286,6 +5286,7 @@ function facetoface_archive_completion($userid, $courseid, $windowopens = NULL) 
                             LEFT JOIN {facetoface_sessions_dates} sd ON s.id = sd.sessionid
                             WHERE s.id = {facetoface_signups}.sessionid
                             AND s.facetoface = :facetofaceid
+                            AND s.datetimeknown = 1
                             GROUP BY s.id
                             HAVING MAX(sd.timefinish) <= :windowopens)";
         // NOTE: Timefinish can be, at most, the date/time that the course/cert was completed. In the windowopens check, we
