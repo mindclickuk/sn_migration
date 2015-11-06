@@ -145,7 +145,7 @@ class rb_source_certification_overview extends rb_source_program_overview {
             'base.timedue',
             array(
                 'joins' => array('base', 'certif_completion'),
-                'displayfunc' => 'program_duedate',
+                'displayfunc' => 'programduedate',
                 'extrafields' => array(
                     'status' => 'certif_completion.status',
                     'programid' => 'base.programid',

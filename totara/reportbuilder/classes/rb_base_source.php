@@ -1551,8 +1551,29 @@ abstract class rb_base_source {
     }
 
     /**
+     * Generates the HTML to display the due/expiry date of a program/certification.
+     *
+     * @deprecated since 2.7 - use $this->usedcomponents[] = 'totara_program' and 'displayfunc' => 'programduedate' instead
+     * @param int $time     The duedate of the program
+     * @param record $row   The whole row, including some required fields
+     * @return html
+     */
+    public function rb_display_program_duedate($time, $row, $isexport = false) {
+        // Get the necessary fields out of the row.
+        $duedate = $time;
+        $userid = $row->userid;
+        $progid = $row->programid;
+        $status = $row->status;
+        $certifpath = isset($row->certifpath) ? $row->certifpath : null;
+        $certifstatus = isset($row->certifstatus) ? $row->certifstatus : null;
+
+        return prog_display_duedate($duedate, $progid, $userid, $certifpath, $certifstatus, $status, $isexport);
+    }
+
+    /**
      * Generates the HTML to display the due/expiry date of a certification.
      *
+     * @deprecated since 2.7 - use $this->usedcomponents[] = 'totara_program' and 'displayfunc' => 'programduedate' instead
      * @param int $time     The duedate of the program
      * @param record $row   The whole row, including some required fields
      * @return html
