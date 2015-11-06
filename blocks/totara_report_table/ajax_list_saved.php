@@ -32,7 +32,7 @@ require_sesskey();
 
 $reportid = required_param('reportid', PARAM_INT);
 
-$params = array('reportid' => $reportid, 'userid' => $USER->id, 'ispublic' => 1);
+$params = array('reportid' => $reportid, 'ispublic' => 1);
 
 $options = $DB->get_records_menu('report_builder_saved', $params, 'id', 'id, name');
 

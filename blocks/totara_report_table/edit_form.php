@@ -53,13 +53,13 @@ class block_totara_report_table_edit_form extends block_edit_form {
         // Report selection.
         $reportoptions = array('' => get_string('choosedots', 'core'));
 
-        $reports = $DB->get_records('report_builder', array('embedded' => 0), 'fullname ASC', 'id, fullname');
-
-        foreach ($reports as $report) {
-            if (!reportbuilder::is_capable($report->id, $USER->id) && $this->block->config->reportid != $report->id) {
-                continue;
-            }
+        $allowed = reportbuilder::get_permitted_reports($USER->id, true);
+        foreach ($allowed as $report) {
             $reportoptions[$report->id] = format_string($report->fullname);
+        }
+
+        if (isset($this->block->config->reportid) && !isset($reportoptions[$this->block->config->reportid])) {
+            $reportoptions[$this->block->config->reportid] = get_string('inaccessiblereport', 'block_totara_report_table');
         }
 
         $mform->addElement('select', 'config_reportid', get_string('report', 'totara_reportbuilder'), $reportoptions);
@@ -78,13 +78,16 @@ class block_totara_report_table_edit_form extends block_edit_form {
         // Populate the saved options.
         $savedoptions = array('0' => get_string('allavailabledata', 'block_totara_report_table'));
 
-        if ($reportid) {
-            $params = array('reportid' => $reportid, 'userid' => $USER->id, 'ispublic' => 1);
+        if ($reportid && isset($allowed[$reportid])) {
+            $params = array('reportid' => $reportid, 'ispublic' => 1);
 
             $savedreports = $DB->get_records_menu('report_builder_saved', $params, 'id', 'id, name');
 
             if (!empty($savedreports)) {
                 $savedoptions = array_replace($savedoptions, $savedreports);
+            }
+            if (isset($this->block->config->savedsearch) && !isset($savedoptions[$this->block->config->savedsearch])) {
+                $savedoptions[$this->block->config->savedsearch] = get_string('inaccessiblesavedsearch','block_totara_report_table');
             }
         }
 

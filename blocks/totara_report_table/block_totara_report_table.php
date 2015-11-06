@@ -179,8 +179,13 @@ class block_totara_report_table extends block_base {
             }
         }
 
+        // Check if report still exists.
+        $reportrecord = $DB->get_record('report_builder', array('id' => $id), '*');
+        if (!$reportrecord) {
+            return $this->content;
+        }
+
         // Verify global restrictions.
-        $reportrecord = $DB->get_record('report_builder', array('id' => $id), '*', MUST_EXIST);
         $globalrestrictionset = rb_global_restriction_set::create_from_page_parameters($reportrecord);
 
         // Instantiate a new report object.
@@ -193,9 +198,9 @@ class block_totara_report_table extends block_base {
             return $this->content;
         }
 
-        if (!$report->is_capable($id)) {
+        if (!reportbuilder::is_capable($id)) {
             // Performance: Temporarily turn off block in session for some time if no caps.
-            if (!is_array($SESSION->nocapsblocktotarareporttable)) {
+            if (empty($SESSION->nocapsblocktotarareporttable) || !is_array($SESSION->nocapsblocktotarareporttable)) {
                 $SESSION->nocapsblocktotarareporttable = array();
             }
             $SESSION->nocapsblocktotarareporttable[$id] = time() + 300;
