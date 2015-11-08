@@ -25,7 +25,7 @@ Feature: Take attendance for Face to face sessions
       | student4 | C1     | student        |
     And I log in as "admin"
     And I set the following administration settings values:
-      | Enable conditional access  | 1 |
+      | Enable restricted access | 1 |
     And I log out
     And I log in as "teacher1"
     And I click on "Find Learning" in the totara menu

@@ -25,7 +25,7 @@ Feature: Instant completion
     And I log in as "admin"
     And I set the following administration settings values:
       | Enable completion tracking | 1 |
-      | Enable conditional access  | 1 |
+      | Enable restricted access   | 1 |
     And I log out
     And I log in as "teacher1"
     And I follow "Course 1"
