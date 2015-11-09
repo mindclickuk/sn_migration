@@ -124,6 +124,8 @@ if (!$nojs) {
 
     $PAGE->set_url(new moodle_url('/totara/feedback360/request/find.php',
             array('userid' => $userid, 'selected' => $selected, 'nojs' => 1)));
+    $PAGE->set_title(get_string('requestfeedback360', 'totara_feedback360'));
+    $PAGE->set_heading(get_string('requestfeedback360', 'totara_feedback360'));
 
     $user_assignment = $DB->get_record('feedback360_user_assignment', array('id' => $formid));
     $feedback360 = $DB->get_record('feedback360', array('id' => $user_assignment->feedback360id));
