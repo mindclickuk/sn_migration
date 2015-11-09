@@ -1154,10 +1154,16 @@ class completion_info {
         }
         $keepusers = array_unique($keepusers);
 
-        // Recalculate state for each kept user
+        // Recalculate state for each kept user. This function is not performed in course completion reset due to
+        // possible performance problems, and instead it shows a notification and does the reaggregation on the
+        // next cron run. This function can probably be safely removed and a notification added, and the following
+        // call to completion_start_user_bulk will mark users as needing reaggregation.
         foreach ($keepusers as $keepuser) {
             $this->update_state($cm, COMPLETION_UNKNOWN, $keepuser);
         }
+
+        // Bulk start users (creates missing course_completion records for all active participants).
+        completion_start_user_bulk($cm->course);
     }
 
     /**

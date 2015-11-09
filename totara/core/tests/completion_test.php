@@ -32,7 +32,7 @@ require_once($CFG->dirroot . '/completion/criteria/completion_criteria.php');
 require_once($CFG->dirroot . '/completion/criteria/completion_criteria_activity.php');
 
 class totara_core_completion_testcase extends advanced_testcase {
-    protected $user_man, $user_rpl, $course, $mod1, $mod2, $comp_rpl, $comp_man, $modcomp1_man, $modcomp2_man, $now;
+    protected $users, $courses, $modules, $now;
 
 
 
@@ -40,73 +40,138 @@ class totara_core_completion_testcase extends advanced_testcase {
         global $DB;
 
         parent::setUp();
+
+        $this->resetAfterTest();
+
         set_config('enablecompletion', 1);
 
         $this->now = time();
 
         // Create test users.
-        $this->user_man = $this->getDataGenerator()->create_user();
-        $this->user_rpl = $this->getDataGenerator()->create_user();
+        $this->users['rpl'] = $this->getDataGenerator()->create_user();
+        $this->users['man'] = $this->getDataGenerator()->create_user();
 
-        // Create test course.
+        // Create two courses, one is the test course and the other is the control.
         $record = new stdClass();
         $record->enablecompletion = 1;
-        $this->course = $this->getDataGenerator()->create_course($record);
+        $this->courses['test'] = $this->getDataGenerator()->create_course($record);
+        $this->courses['cont'] = $this->getDataGenerator()->create_course($record);
 
-        // Add test modules to the course.
+        // Add test modules to both courses.
         $record = new stdClass();
-        $record->course = $this->course->id;
-        $record->completion = 2;
-        $this->mod1 = $this->getDataGenerator()->create_module('choice', $record);
-        $this->mod2 = $this->getDataGenerator()->create_module('choice', $record);
+        $record->completion = COMPLETION_TRACKING_AUTOMATIC;
+        $record->completionview = 1; // These modules must be viewed to be marked as complete.
+        $record->course = $this->courses['test']->id;
+        $this->modules['test1'] = $this->getDataGenerator()->create_module('choice', $record);
+        $this->modules['test2'] = $this->getDataGenerator()->create_module('choice', $record);
+        $record->course = $this->courses['cont']->id;
+        $this->modules['cont1'] = $this->getDataGenerator()->create_module('choice', $record);
+        $this->modules['cont2'] = $this->getDataGenerator()->create_module('choice', $record);
 
-        // Set up the courses completion criteria based on both modules.
-        $data = new stdClass();
-        $data->id = $this->course->id;
-        $data->overall_aggregation = COMPLETION_AGGREGATION_ALL;
-        $data->criteria_activity_value = array($this->mod1->id => 1, $this->mod2->id => 1);
+        // Set up the course completion criteria.
         $criterion = new completion_criteria_activity();
+        $data = new stdClass();
+        $data->activity_aggregation = COMPLETION_AGGREGATION_ALL;
+        $data->criteria_activity_value = array($this->modules['test1']->id => 1, $this->modules['test2']->id => 1);
+        $data->id = $this->courses['test']->id;
+        $criterion->update_config($data);
+        $data->criteria_activity_value = array($this->modules['cont1']->id => 1, $this->modules['cont2']->id => 1);
+        $data->id = $this->courses['cont']->id;
         $criterion->update_config($data);
 
-        // Assign users to the course.
-        $this->getDataGenerator()->enrol_user($this->user_man->id, $this->course->id);
-        $this->getDataGenerator()->enrol_user($this->user_rpl->id, $this->course->id);
+        // Course completion criteria aggregation methods.
+        foreach ($this->courses as $course) {
+            $aggdata = array(
+                'course'        => $course->id,
+                'criteriatype'  => null
+            );
+            $aggregation = new completion_aggregation($aggdata);
+            $aggregation->setMethod(COMPLETION_AGGREGATION_ALL);
+            $aggregation->save();
 
-        // Create completion objects.
-        $this->comp_rpl = new stdClass();
-        $this->comp_rpl->id = $DB->get_field('course_completions', 'id',
-            array('userid' => $this->user_rpl->id, 'course' => $this->course->id));
-        $this->comp_rpl->userid = $this->user_rpl->id;
-        $this->comp_rpl->course = $this->course->id;
-        $this->comp_rpl->timeenrolled = $this->now;
-        $this->comp_rpl->timestarted = $this->now;
-        $this->comp_rpl->timecompleted = $this->now;
-        $this->comp_rpl->rpl = 'ripple';
-        $this->comp_rpl->status = COMPLETION_STATUS_COMPLETEVIARPL;
+            $aggdata['criteriatype'] = COMPLETION_CRITERIA_TYPE_ACTIVITY;
+            $aggregation = new completion_aggregation($aggdata);
+            $aggregation->setMethod(COMPLETION_AGGREGATION_ALL);
+            $aggregation->save();
+        }
 
-        $this->comp_man = new stdClass();
-        $this->comp_man->id = $DB->get_field('course_completions', 'id',
-            array('userid' => $this->user_man->id, 'course' => $this->course->id));
-        $this->comp_man->userid = $this->user_man->id;
-        $this->comp_man->course = $this->course->id;
-        $this->comp_man->timeenrolled = $this->now;
-        $this->comp_man->timestarted = $this->now;
-        $this->comp_man->timecompleted = $this->now;
-        $this->comp_man->status = COMPLETION_STATUS_COMPLETE;
+        // Assign users to the courses.
+        $this->getDataGenerator()->enrol_user($this->users['man']->id, $this->courses['test']->id);
+        $this->getDataGenerator()->enrol_user($this->users['rpl']->id, $this->courses['test']->id);
+        $this->getDataGenerator()->enrol_user($this->users['man']->id, $this->courses['cont']->id);
+        $this->getDataGenerator()->enrol_user($this->users['rpl']->id, $this->courses['cont']->id);
+
+        // Mark the RPL control user as complete by hacking the record (which is basically what completion upload does).
+        $completion = $DB->get_record('course_completions',
+            array('userid' => $this->users['rpl']->id, 'course' => $this->courses['cont']->id));
+        $completion->timeenrolled = $this->now;
+        $completion->timestarted = $this->now;
+        $completion->timecompleted = $this->now;
+        $completion->rpl = 'ripple';
+        $completion->status = COMPLETION_STATUS_COMPLETEVIARPL;
+        $DB->update_record('course_completions', $completion);
+
+        // Mark the manual control user as complete by completing both modules.
+        $completioninfo = new completion_info($this->courses['cont']);
+        $coursemodules = get_coursemodules_in_course('choice', $this->courses['cont']->id);
+        foreach ($coursemodules as $cm) {
+            $completioninfo->set_module_viewed($cm, $this->users['man']->id);
+        }
+
+        // Verify that the control has been set up correctly.
+        $this->check_control();
+    }
+
+    protected function tearDown() {
+        // Verify that the control has not been affected in any way by the actions performed in the tests.
+        $this->check_control();
+    }
+
+    private function check_control() {
+        global $DB;
+
+        // Check the course completion records.
+        $this->assertEquals(2, $DB->count_records('course_completions', array('course' => $this->courses['cont']->id)));
+
+        $record = $DB->get_record('course_completions',
+            array('course' => $this->courses['cont']->id, 'userid' => $this->users['rpl']->id));
+        $this->assertEquals('ripple', $record->rpl);
+        $this->assertGreaterThanOrEqual($this->now, $record->timecompleted);
+
+        $record = $DB->get_record('course_completions',
+            array('course' => $this->courses['cont']->id, 'userid' => $this->users['man']->id));
+        $this->assertEquals('', $record->rpl);
+        $this->assertGreaterThanOrEqual($this->now, $record->timecompleted);
+
+        // Check the course module completion records.
+        $records = $DB->get_records('course_completion_criteria', array('course' => $this->courses['cont']->id));
+        $this->assertEquals(2, count($records));
+        foreach ($records as $record) {
+            $this->assertEquals(1, $DB->count_records('course_modules_completion',
+                array('coursemoduleid' => $record->id)));
+            $this->assertEquals(1, $DB->count_records('course_modules_completion',
+                array('coursemoduleid' => $record->id, 'userid' => $this->users['man']->id)));
+        }
+
+        // Check the module criteria completion records (none for RPL user because they just marked course complete).
+        $this->assertEquals(2, $DB->count_records('course_completion_crit_compl', array('course' => $this->courses['cont']->id)));
+
+        $records = $DB->get_records('course_completion_crit_compl', array('course' => $this->courses['cont']->id));
+        foreach ($records as $record) {
+            $this->assertEquals($record->userid, $this->users['man']->id);
+            $this->assertGreaterThanOrEqual(0, $record->timecompleted);
+        }
     }
 
     /**
-     * Check that completion records enrolment date comes from the
-     * enrolment record after a reset and not time()
+     * Check that completion records enrolment date comes from the enrolment record after a reset and not time().
      */
     public function test_enrolmentdate_reset() {
         global $DB;
 
-        $this->resetAfterTest();
-
-        // Turn on completion starts on enrol for the course.
+        // Turn on completion starts on enrolment for the test course.
         $updatesql = "UPDATE {course} SET completionstartonenrol = 1 where id = ?";
-        $DB->execute($updatesql, array($this->course->id));
+        $DB->execute($updatesql, array($this->courses['test']->id));
 
         // Get the expected times.
         $sql = "SELECT userid, MIN(timecreated) AS mindate
@@ -115,14 +180,17 @@ class totara_core_completion_testcase extends advanced_testcase {
         $timeenrolled = $DB->get_records_sql($sql);
 
         // Reset the completions and restart the users.
-        $completion = new completion_info($this->course);
+        $completion = new completion_info($this->courses['test']);
         $completion->delete_course_completion_data();
-        completion_start_user_bulk($this->course->id);
+        completion_start_user_bulk($this->courses['test']->id);
 
         // Compare the generated dates with the expected ones.
-        $resetcompletions = $DB->get_records('course_completions', array(), '', 'userid, timeenrolled');
-        $this->assertEquals($timeenrolled[$this->user_man->id]->mindate, $resetcompletions[$this->user_man->id]->timeenrolled);
-        $this->assertEquals($timeenrolled[$this->user_rpl->id]->mindate, $resetcompletions[$this->user_rpl->id]->timeenrolled);
+        $resetcompletions = $DB->get_records('course_completions',
+            array('course' => $this->courses['test']->id), '', 'userid, timeenrolled');
+        $this->assertEquals($timeenrolled[$this->users['man']->id]->mindate,
+            $resetcompletions[$this->users['man']->id]->timeenrolled);
+        $this->assertEquals($timeenrolled[$this->users['rpl']->id]->mindate,
+            $resetcompletions[$this->users['rpl']->id]->timeenrolled);
 
         // Now set a start date for the user enrolments (it should use the startdate instead of timecreated).
         $timestart = "1234567890";
@@ -130,125 +198,123 @@ class totara_core_completion_testcase extends advanced_testcase {
         $DB->execute($updatesql);
 
         // Reset the completions again.
-        $completion = new completion_info($this->course);
+        $completion = new completion_info($this->courses['test']);
         $completion->delete_course_completion_data();
-        completion_start_user_bulk($this->course->id);
+        completion_start_user_bulk($this->courses['test']->id);
 
         // Compare the generated dates with the expected ones.
-        $resetcompletions = $DB->get_records('course_completions', array(), '', 'userid, timeenrolled');
-        $this->assertEquals($timestart, $resetcompletions[$this->user_man->id]->timeenrolled);
-        $this->assertEquals($timestart, $resetcompletions[$this->user_rpl->id]->timeenrolled);
+        $resetcompletions = $DB->get_records('course_completions',
+            array('course' => $this->courses['test']->id), '', 'userid, timeenrolled');
+        $this->assertEquals($timestart, $resetcompletions[$this->users['man']->id]->timeenrolled);
+        $this->assertEquals($timestart, $resetcompletions[$this->users['rpl']->id]->timeenrolled);
     }
 
     /**
-     * This tests maintaining RPL completion data when an activity is reset.
+     * This tests keeping RPL course completion data and removing non-RPL course completion data when an activity is reset.
      */
     public function test_modupdate_rpl() {
         global $DB;
 
-        $this->resetAfterTest();
+        // Make sure the course completion records were created when the user was enrolled.
+        $this->assertEquals(2, $DB->count_records('course_completions',
+            array('course' => $this->courses['test']->id)));
 
-        // Make sure the records were created when the user was enrolled.
-        $this->assertEquals(2, $DB->count_records('course_completions', array('course' => $this->course->id)));
+        // We havent made any activity completion records yet.
+        $this->assertEquals(0, $DB->count_records('course_completion_crit_compl',
+            array('course' => $this->courses['test']->id)));
 
-        // Update the record in the db directly.
-        $DB->update_record('course_completions', $this->comp_rpl);
-
-        // Trigger completion refresh for course module.
-        $mod = $DB->get_record('course_modules', array('id' => $this->mod1->id));
-        $completion = new completion_info($this->course);
-        $completion->reset_all_state($mod);
-
-        // Make sure the records are still there.
-        $this->assertEquals(2, $DB->count_records('course_completions', array('course' => $this->course->id)));
-
-        // Verify the data is intact.
-        $comp = $DB->get_record('course_completions', array('userid' => $this->user_rpl->id));
-        $this->assertEquals('ripple', $comp->rpl);
-        $this->assertEquals($this->now, $comp->timecompleted);
-    }
-
-    /**
-     * This tests that an incorrect non RPL completion is reset correctly.
-     */
-    public function test_modupdate_manual_reset() {
-        global $DB;
-
-        $this->resetAfterTest();
-        $completion = new completion_info($this->course);
-
-        // Make sure the records were created when the user was enrolled.
-        $this->assertEquals(2, $DB->count_records('course_completions', array('course' => $this->course->id)));
-
-        // Update the record in the db directly.
-        $DB->update_record('course_completions', $this->comp_man);
-
-        // Trigger completion refresh for course module.
-        $mod = $DB->get_record('course_modules', array('id' => $this->mod1->id));
-        $completion->reset_all_state($mod);
-
-        // Make sure the record is still there.
-        $this->assertEquals(2, $DB->count_records('course_completions', array('course' => $this->course->id)));
-
-        // Verify the data has been reset.
-        $comp = $DB->get_record('course_completions', array('userid' => $this->user_man->id));
-        $this->assertEquals('', $comp->rpl);
-        $this->assertEquals(null, $comp->timecompleted);
-    }
-
-    /**
-     * This tests that a correct non RPL completion is maintained through reset correctly.
-     */
-    public function test_modupdate_manual_maintain() {
-        global $DB;
-
-        $this->resetAfterTest();
-        $completion = new completion_info($this->course);
-
-        // We havent made them yet so there shouldnt be any criteria records.
-        $this->assertEquals(0, $DB->count_records('course_completion_crit_compl', array('course' => $this->course->id)));
-
-        // Now mark the user as complete correctly, by completing each criteria.
-        $critids = $DB->get_fieldset_select('course_completion_criteria', 'id', 'course = ?', array($this->course->id));
-        foreach ($critids as $critid) {
-            $params = array(
-                'userid' => $this->user_man->id,
-                'course' => $this->course->id,
-                'criteriaid' => $critid
-            );
-            $critcomp = new completion_criteria_completion($params);
-            $critcomp->mark_complete();
+        // There should be no course module completion records either.
+        $records = $DB->get_records('course_completion_criteria', array('course' => $this->courses['test']->id));
+        $this->assertEquals(2, count($records));
+        foreach ($records as $record) {
+            $this->assertEquals(0, $DB->count_records('course_modules_completion',
+                array('coursemoduleid' => $record->id)));
         }
+
+        // Mark the RPL user as complete by updating the database directly (similar to completion upload).
+        $completion = $DB->get_record('course_completions',
+            array('userid' => $this->users['rpl']->id, 'course' => $this->courses['test']->id));
+        $completion->timeenrolled = $this->now;
+        $completion->timestarted = $this->now;
+        $completion->timecompleted = $this->now;
+        $completion->rpl = 'ripple';
+        $completion->status = COMPLETION_STATUS_COMPLETEVIARPL;
+        $DB->update_record('course_completions', $completion);
+
+        // Mark the manual user as complete by completing each criteria.
+        $completioninfo = new completion_info($this->courses['test']);
+        $coursemodules = get_coursemodules_in_course('choice', $this->courses['test']->id);
+        foreach ($coursemodules as $cm) {
+            $completioninfo->set_module_viewed($cm, $this->users['man']->id);
+        }
+
+        // Make sure the users have the correct course completion records.
+        $this->assertEquals(2, $DB->count_records('course_completions',
+            array('course' => $this->courses['test']->id)));
+
+        $comp = $DB->get_record('course_completions',
+            array('course' => $this->courses['test']->id, 'userid' => $this->users['rpl']->id));
+        $this->assertEquals('ripple', $comp->rpl);
+        $this->assertGreaterThanOrEqual($this->now, $comp->timecompleted);
+
+        $comp = $DB->get_record('course_completions',
+            array('course' => $this->courses['test']->id, 'userid' => $this->users['man']->id));
+        $this->assertEquals('', $comp->rpl);
+        $this->assertGreaterThanOrEqual($this->now, $comp->timecompleted);
 
         // There should now be 2 criteria completion records.
-        $this->assertEquals(2, $DB->count_records('course_completion_crit_compl', array('course' => $this->course->id)));
+        $this->assertEquals(2, $DB->count_records('course_completion_crit_compl', array('course' => $this->courses['test']->id)));
 
-        // And they should both be marked as complete and belong to user_man.
+        // And two course module completion records as well.
+        $records = $DB->get_records('course_completion_criteria', array('course' => $this->courses['test']->id));
+        $this->assertEquals(2, count($records));
+        foreach ($records as $record) {
+            $this->assertEquals(1, $DB->count_records('course_modules_completion',
+                array('coursemoduleid' => $record->id)));
+            $this->assertEquals(1, $DB->count_records('course_modules_completion',
+                array('coursemoduleid' => $record->id, 'userid' => $this->users['man']->id)));
+        }
 
-        // And two course completion records.
-        $this->assertEquals(2, $DB->count_records('course_completions', array('course' => $this->course->id)));
-
-        // Reset one of the activity modules.
-        $mod = $DB->get_record('course_modules', array('id' => $this->mod1->id));
+        // Trigger completion reset with delete for one of the course modules.
+        $mod = $DB->get_record('course_modules', array('id' => $this->modules['test1']->id));
+        $completion = new completion_info($this->courses['test']);
         $completion->reset_all_state($mod);
 
-        // After the reset there should still be the two records from before, and an empty one for the rpl user.
-        $this->assertEquals(3, $DB->count_records('course_completion_crit_compl', array('course' => $this->course->id)));
+        // After the reset there should be only one record for the other activity which wasn't removed during the reset.
+        $this->assertEquals(1, $DB->count_records('course_completion_crit_compl',
+            array('course' => $this->courses['test']->id)));
+        $criteria = $DB->get_record('course_completion_criteria', array('moduleinstance' => $this->modules['test2']->id));
+        $this->assertEquals(1, $DB->count_records('course_completion_crit_compl',
+            array('course' => $this->courses['test']->id, 'criteriaid' => $criteria->id)));
 
-        // Check that user_man is still marked as complete.
-        $records = $DB->get_records('course_completion_crit_compl', array('userid' => $this->user_man->id));
+        // And a matching course module completion record.
+        $records = $DB->get_records('course_completion_criteria', array('course' => $this->courses['test']->id));
+        $this->assertEquals(2, count($records));
         foreach ($records as $record) {
-            $this->assertGreaterThanOrEqual(0, $record->timecompleted);
+            if ($record->moduleinstance == $this->modules['test2']->id) {
+                $this->assertEquals(1, $DB->count_records('course_modules_completion',
+                    array('coursemoduleid' => $record->id)));
+                $this->assertEquals(1, $DB->count_records('course_modules_completion',
+                    array('coursemoduleid' => $record->id, 'userid' => $this->users['man']->id)));
+            } else {
+                $this->assertEquals(0, $DB->count_records('course_modules_completion',
+                    array('coursemoduleid' => $record->id)));
+            }
         }
 
-        // Check there is still two course completion records.
-        $this->assertEquals(2, $DB->count_records('course_completions', array('course' => $this->course->id)));
+        // Make sure the users still have course completion records.
+        $this->assertEquals(2, $DB->count_records('course_completions', array('course' => $this->courses['test']->id)));
 
-        // And that user_man has been marked for re-aggregation.
-        $records = $DB->get_records('course_completions', array('userid' => $this->user_man->id));
-        foreach ($records as $record) {
-            $this->assertEquals(null, $record->timecompleted);
-            $this->assertGreaterThanOrEqual($this->now, $record->reaggregate);
-        }
+        // Verify the data is unchanged for rpl user.
+        $comp = $DB->get_record('course_completions',
+            array('course' => $this->courses['test']->id, 'userid' => $this->users['rpl']->id));
+        $this->assertEquals('ripple', $comp->rpl);
+        $this->assertGreaterThanOrEqual($this->now, $comp->timecompleted);
+
+        // Verify the data has been reset for manual user.
+        $comp = $DB->get_record('course_completions',
+            array('course' => $this->courses['test']->id, 'userid' => $this->users['man']->id));
+        $this->assertEquals('', $comp->rpl);
+        $this->assertEquals(null, $comp->timecompleted);
     }
 }
