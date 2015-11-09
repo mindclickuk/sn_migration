@@ -132,7 +132,7 @@ class totara_dialog_content_hierarchy extends totara_dialog_content {
         // Make some capability checks
         $this->skip_access_checks = $skipaccesschecks;
         if (!$this->skip_access_checks) {
-            require_login();
+            require_login(null, false, null, false, true);
             require_capability("totara/hierarchy:view{$prefix}", context_system::instance());
         }
         // Save supplied frameworkid

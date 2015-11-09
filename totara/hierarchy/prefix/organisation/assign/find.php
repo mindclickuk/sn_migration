@@ -27,9 +27,9 @@ require_once($CFG->dirroot.'/totara/core/dialogs/dialog_content_hierarchy.class.
 
 $PAGE->set_context(context_system::instance());
 
-$skipaccess = (get_config('totara_hierarchy', 'allowsignuporganisation') && $USER->id == 0);
+$skipaccess = (!empty($CFG->registerauth) && get_config('totara_hierarchy', 'allowsignuporganisation') && $USER->id == 0);
 if (!$skipaccess) {
-    require_login();
+    require_login(null, false, null, false, true);
 }
 
 ///

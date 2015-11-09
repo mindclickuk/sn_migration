@@ -30,43 +30,52 @@ $userid = required_param('userid', PARAM_INT);
 
 $PAGE->set_context(context_system::instance());
 
-if (!(get_config('totara_hierarchy', 'allowsignupmanager') && $userid == 0)) {
-    require_login();
+// If you can select a manager on signup and you don't have an account.
+$manageronsignup = (!empty($CFG->registerauth) && get_config('totara_hierarchy', 'allowsignupmanager') && $userid === 0);
+if (!$manageronsignup) {
+    // Its off or you have signified you are looking at a specific user.
+    require_login(null, false, null, false, true);
 }
 
 position::check_feature_enabled();
 
-///
-/// Setup / loading data
-///
+// First check that the user really does exist and that they're not a guest.
+$userexists = !isguestuser($userid) && $DB->record_exists('user', array('id' => $userid, 'deleted' => 0));
 
-//get guest user for exclusion purposes
-$guest = guest_user();
+// Check if the current user can edit the given users position assignments.
+$canedit = $userexists && pos_can_edit_position_assignment($userid);
 
-// Load potential managers for this user.
-$usernamefields = get_all_user_name_fields(true, 'u');
-$managers = $DB->get_records_sql(
-    "
-        SELECT
-            u.id, u.email,
-            {$usernamefields}
-        FROM
-            {user} u
-        WHERE
-            u.deleted = 0
-        AND u.suspended = 0
-        AND u.id != ?
-        AND u.id != ?
-        ORDER BY
-            {$usernamefields}
-    ",
-    array($guest->id, $userid), 0, TOTARA_DIALOG_MAXITEMS + 1);
-// Limit results to 1 more than the maximum number that might be displayed
-// there is no point returning any more as we will never show them
+// Prepare an array of managers. If they can't see other users this will remain empty and they'll just get
+// an empty request.
+$managers = array();
 
-///
-/// Display page
-///
+// The current user can see a list of users if:
+//    They can edit the current users position.
+// OR
+//    Allow primary position fields: manager has been turned on for the email auth plugin and
+//    they are not currently logged in.
+//    In which case anyone can get a list of users - there is a warning in the interface about this.
+if ($canedit || $manageronsignup) {
+    // Get guest user for exclusion purposes
+    $guest = guest_user();
+    // Load potential managers for this user.
+    $usernamefields = get_all_user_name_fields(true, 'u');
+    $sql = "SELECT u.id, u.email, {$usernamefields}
+              FROM {user} u
+             WHERE u.deleted = 0
+               AND u.suspended = 0
+               AND u.id != :guestid
+               AND u.id != :userid
+          ORDER BY {$usernamefields}";
+    $params = array(
+        'guestid' => $guest->id,
+        'userid' => $userid
+    );
+    // Limit results to 1 more than the maximum number that might be displayed
+    // there is no point returning any more as we will never show them.
+    $managers = $DB->get_records_sql($sql, $params, 0, TOTARA_DIALOG_MAXITEMS + 1);
+}
+
 foreach ($managers as $manager) {
     $manager->fullname = fullname($manager);
 }

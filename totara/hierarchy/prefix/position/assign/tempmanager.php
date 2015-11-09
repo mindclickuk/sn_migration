@@ -37,33 +37,56 @@ $userid = required_param('userid', PARAM_INT);
 
 // Setup page.
 $PAGE->set_context(context_system::instance());
-require_login();
+require_login(null, false, null, false, true);
 
+position::check_feature_enabled();
+
+// First check that the user really does exist and that they're not a guest.
+$userexists = !isguestuser($userid) && $DB->record_exists('user', array('id' => $userid, 'deleted' => 0));
+
+// Will return no items if user does not have permissions.
+$currentmanagerid = 0;
+$managers = array();
+
+$canedittempmanager = false;
+if ($userexists && !empty($CFG->enabletempmanagers)) {
+    $personalcontext = context_user::instance($userid);
+    if (has_capability('totara/core:delegateusersmanager', $personalcontext)) {
+        $canedittempmanager = true;
+    } else if ($USER->id == $userid && has_capability('totara/core:delegateownmanager', $personalcontext)) {
+        $canedittempmanager = true;
+    } else if (pos_can_edit_position_assignment($userid)) {
+        $canedittempmanager = true;
+    }
+}
+
+if ($canedittempmanager) {
 // Get guest user for exclusion purposes.
-$guest = guest_user();
+    $guest = guest_user();
 
 // Load potential managers for this user.
-$currentmanager = totara_get_manager($userid, null, true);
-$currentmanagerid = empty($currentmanager) ? 0 : $currentmanager->id;
-$usernamefields = get_all_user_name_fields(true, 'u');
-if (empty($CFG->tempmanagerrestrictselection)) {
-    // All users.
-    $sql = "SELECT u.id, u.email, {$usernamefields}
+    $currentmanager = totara_get_manager($userid, null, true);
+    $currentmanagerid = empty($currentmanager) ? 0 : $currentmanager->id;
+    $usernamefields = get_all_user_name_fields(true, 'u');
+    if (empty($CFG->tempmanagerrestrictselection)) {
+        // All users.
+        $sql = "SELECT u.id, u.email, {$usernamefields}
               FROM {user} u
              WHERE u.deleted = 0
                AND u.suspended = 0
                AND u.id NOT IN(?, ?, ?)
           ORDER BY {$usernamefields}, u.id";
-} else {
-    $sql = "SELECT DISTINCT u.id, u.email, {$usernamefields}
+    } else {
+        $sql = "SELECT DISTINCT u.id, u.email, {$usernamefields}
               FROM {pos_assignment} pa
               JOIN {user} u ON pa.managerid = u.id
              WHERE u.deleted = 0
                AND u.suspended = 0
                AND u.id NOT IN(?, ?, ?)
           ORDER BY {$usernamefields}, u.id";
+    }
+    $managers = $DB->get_records_sql($sql, array($guest->id, $userid, $currentmanagerid));
 }
-$managers = $DB->get_records_sql($sql, array($guest->id, $userid, $currentmanagerid));
 
 foreach ($managers as $manager) {
     $manager->fullname = fullname($manager);

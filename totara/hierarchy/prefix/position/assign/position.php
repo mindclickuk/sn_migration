@@ -28,9 +28,9 @@ require_once($CFG->dirroot.'/totara/hierarchy/prefix/position/lib.php');
 
 $PAGE->set_context(context_system::instance());
 
-$skipaccess = (get_config('totara_hierarchy', 'allowsignupposition') && $USER->id == 0);
+$skipaccess = (!empty($CFG->registerauth) && get_config('totara_hierarchy', 'allowsignupposition') && $USER->id == 0);
 if (!$skipaccess) {
-    require_login();
+    require_login(null, false, null, false, true);
 }
 
 position::check_feature_enabled();
