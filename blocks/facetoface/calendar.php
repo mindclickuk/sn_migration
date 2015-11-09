@@ -48,13 +48,16 @@ if (!is_null($day) && !is_null($month) && !is_null($year)) {
     // If this has been set then we are going to assume it is gregorian, it has to be sorry.
     // Good luck with other calendar types.
     $date = $calendartype->convert_from_gregorian($year, $month, $day);
+    $day = $date['day'];
+    $month = $date['month'];
+    $year = $date['year'];
 } else {
     // Easy! grab a date object from the timestamp.
     $date = $calendartype->timestamp_to_date_array($timenow);
+    $day = $date['mday'];
+    $month = $date['mon'];
+    $year = $date['year'];
 }
-$day = $date['mday'];
-$month = $date['mon'];
-$year = $date['year'];
 
 $baseparams = array('cal_d' => $day, 'cal_m' => $month, 'cal_y' => $year);
 
