@@ -5,8 +5,8 @@ alpaca
 ant
 anteater
 antelope
-ape
 armadillo
+bandicoot
 barracuda
 bat
 bee
@@ -65,7 +65,6 @@ goat
 goose
 goldfinch
 goldfish
-gorilla
 goshawk
 grouse
 guanaco
@@ -81,7 +80,7 @@ horse
 human
 hyena
 jackal
-jaguar
+jaeger
 jay
 jellyfish
 kangaroo
@@ -97,8 +96,9 @@ llama
 lobster
 locust
 loris
-louse
+lorikeet
 lyrebird
+lynx
 magpie
 mallard
 manatee
@@ -106,6 +106,7 @@ marten
 meerkat
 mink
 mole
+mongoose
 moose
 mouse
 mosquito
@@ -134,11 +135,11 @@ porpoise
 quail
 quelea
 rabbit
-raccoon
 rail
-rat
 raven
 reindeer
+rhinoceros
+robin
 rook
 ruff
 salmon
@@ -157,7 +158,7 @@ squid
 squirrel
 starling
 stingray
-stinkbug
+stilt
 stork
 swallow
 swan
@@ -165,16 +166,15 @@ tapir
 tarsier
 termite
 tiger
-toad
+toucan
 trout
-turkey
 turtle
 viper
 vulture
 wallaby
 walrus
 wasp
-weasel
+whale
 wolf
 wolverine
 wombat
