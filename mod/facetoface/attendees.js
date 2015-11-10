@@ -43,6 +43,11 @@ M.totara_f2f_attendees = M.totara_f2f_attendees || {
         // save a reference to the Y instance (all of its dependencies included)
         this.Y = Y;
 
+        // check jQuery dependency is available
+        if (typeof $ === 'undefined') {
+            throw new Error('M.totara_f2f_attendees.init()-> jQuery dependency required for this module to function.');
+        }
+
         $('.selectall').click(function(){
             $('[name="userid"]').prop("checked", true);
         });
@@ -59,11 +64,6 @@ M.totara_f2f_attendees = M.totara_f2f_attendees || {
                     this.config[a] = jargs[a];
                 }
             }
-        }
-
-        // check jQuery dependency is available
-        if (typeof $ === 'undefined') {
-            throw new Error('M.totara_f2f_attendees.init()-> jQuery dependency required for this module to function.');
         }
 
         var notsetoption = M.totara_f2f_attendees.config.notsetop.toString();
@@ -323,10 +323,11 @@ M.totara_f2f_attendees = M.totara_f2f_attendees || {
             // Reset all checkboxes.
             $('.selectedcheckboxes').prop('checked', false);
             $(":checkbox").filter(function() {
+                var selectid = $(this).data('selectid');
                 if (operator == 'EQ') {
-                    return this.value == val;
+                    return $('#'+selectid).val() == val;
                 } else {
-                    return this.value != val;
+                    return $('#'+selectid).val() != val;
                 }
             }).prop("checked", "true");
         }
@@ -394,59 +395,19 @@ M.totara_f2f_attendees = M.totara_f2f_attendees || {
             $('select#menubulkattendanceop').prop('selectedIndex', 0);
         });
 
-        // Handle drop-down menu attendees current status.
-        $('select[id^="menusubmissionid"]').change(function() {
-            var datatosubmit = {s: $('input[name="s"]').val()};
-            var idchecked = (this.name).substring(13); // Select list name (starts with submissionid_).
-            // Mark value of the checkbox peer with the selected option.
-            $('input[name="check_submissionid_'+idchecked+'"]').val($(this).val());
-
-            if ($(this).val() != notsetoption) {
-                datatosubmit[this.name] = $(this).val();
-                save_attendance_status(datatosubmit);
-            }
-        });
-
         // Handle drop-down bulk attendance actions.
         $('select#menubulkattendanceop').change(function() {
             var selected = $(this).val();
             var idchecked = 0;
-            var datatosubmit = {s: $('input[name="s"]').val()}; // Create object to send via ajax.
-
             if (selected != notsetoption && options_validated(selected)) {
                 $(':checkbox:checked').each(function(index) {
                     idchecked = (this.name).substring(19); // Checkbox id.
                     $(this).val(selected); // Mark value of this checkbox with the selected option.
                     $('select#menusubmissionid_'+idchecked+' option[value='+selected+']').prop('selected', true);
-                    datatosubmit['submissionid_'+idchecked] = selected; // Add data to submit via ajax.
                 });
-
-                save_attendance_status(datatosubmit);
             }
         });
 
-        // Save attendance via AJAX.
-        function save_attendance_status(data) {
-            $.ajax({
-                type: "POST",
-                url: M.cfg.wwwroot + '/mod/facetoface/updateattendance.php',
-                data: ({
-                    sesskey:  M.cfg.sesskey,
-                    datasubmission: data
-                }),
-                success: function(o) {
-                    // Success, display positive message for user.
-                    // We don't need to test the result in 'o' because we only
-                    // arrive here when we receive an encoded JSON response,
-                    // which is only sent on success.
-                    print_notice(true);
-                },
-                error: function() {
-                    // Fail, display error message for user.
-                    print_notice(false)
-                }
-            });
-        }
 
         /**
         *  Attaches mouse events to the loaded content.

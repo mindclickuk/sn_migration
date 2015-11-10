@@ -35,6 +35,8 @@ require_once($CFG->dirroot . '/totara/core/js/lib/setup.php');
  */
 // Face-to-face session ID
 $s = required_param('s', PARAM_INT);
+// Take attendance
+$takeattendance    = optional_param('takeattendance', false, PARAM_BOOL);
 // Cancel request
 $cancelform        = optional_param('cancelform', false, PARAM_BOOL);
 // Action being performed
@@ -351,6 +353,17 @@ if ($form = data_submitted()) {
         die();
     }
 
+    // Take attendance.
+    if ($action == 'takeattendance' && $takeattendance) {
+        if (facetoface_take_attendance($form)) {
+            // Trigger take attendance update event.
+            \mod_facetoface\event\attendance_updated::create_from_session($session, $context)->trigger();
+            totara_set_notification(get_string('updateattendeessuccessful', 'facetoface'), $return,
+                    array('class' => 'notifysuccess'));
+        }
+        totara_set_notification(get_string('error:takeattendance', 'facetoface'), $return, array('class' => 'notifyproblem'));
+    }
+
     // Send messages
     if ($action == 'messageusers') {
         $formurl = clone($baseurl);
@@ -607,7 +620,7 @@ if ($show_table) {
         if (($action == 'takeattendance') && !$download) {
 
             $attendees_url = new moodle_url('attendees.php', array('s' => $s, 'takeattendance' => '1', 'action' => 'takeattendance'));
-            echo html_writer::start_tag('form', array('action' => $attendees_url, 'method' => 'post'));
+            echo html_writer::start_tag('form', array('action' => $attendees_url, 'method' => 'post', 'id' => 'attendanceform'));
             echo html_writer::tag('p', get_string('attendanceinstructions', 'facetoface'));
             echo html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 'sesskey', 'value' => $USER->sesskey));
             echo html_writer::empty_tag('input', array('type' => 'hidden', 'name' => 's', 'value' => $s));
@@ -780,7 +793,10 @@ if ($show_table) {
 
                 if (!$download) {
                     $status = $attendee->statuscode;
-                    $checkbox = html_writer::checkbox($checkoptionid, $status, false, '', array('class' => 'selectedcheckboxes'));
+                    $checkbox = html_writer::checkbox($checkoptionid, $status, false, '', array(
+                        'class' => 'selectedcheckboxes',
+                        'data-selectid' => 'menusubmissionid_' . $attendee->submissionid
+                    ));
                     array_unshift($data, $checkbox);
                     $select = html_writer::select($statusoptions, $optionid, $status, false);
                     $data[] = $select;
@@ -875,6 +891,22 @@ if ($show_table) {
     }
 
     if (has_any_capability(array('mod/facetoface:addattendees', 'mod/facetoface:removeattendees'), $context)) {
+        if ($action == 'takeattendance') {
+            // Changes checker
+            $PAGE->requires->yui_module('moodle-core-formchangechecker',
+                'M.core_formchangechecker.init',
+                array(array(
+                    'formid' => 'attendanceform'
+                ))
+            );
+            $PAGE->requires->string_for_js('changesmadereallygoaway', 'moodle');
+
+            // Save and cancel buttons.
+            echo html_writer::start_tag('p');
+            echo html_writer::empty_tag('input', array('type' => 'submit', 'value' => get_string('saveattendance', 'facetoface')));
+            echo '&nbsp;' . html_writer::empty_tag('input', array('type' => 'submit', 'name' => 'cancelform', 'value' => get_string('cancel')));
+            echo html_writer::end_tag('p') . html_writer::end_tag('form');
+        }
         echo $OUTPUT->container_start('actions last');
         if ($actions) {
             // Action selector
