@@ -40,8 +40,16 @@ require_capability('totara/program:configureassignments', program_get_context($p
 // Heirarchy type, e.g. position
 $type = required_param('type', PARAM_ALPHA);
 
-// Heirarchy table, e.g. pos
-$table = required_param('table', PARAM_ALPHA);
+switch ($type) {
+    case 'position':
+        $table = 'pos';
+        break;
+    case 'organisation':
+        $table = 'org';
+        break;
+    default:
+        throw new invalid_parameter_exception;
+}
 
 // Parent id
 $parentid = optional_param('parentid', 0, PARAM_INT);

@@ -870,7 +870,7 @@ class organisations_category extends prog_assignment_category {
 
     function get_js($programid) {
         $title = addslashes_js(get_string('addorganisationstoprogram', 'totara_program'));
-        $url = 'find_hierarchy.php?type=organisation&table=org&programid='.$programid;
+        $url = 'find_hierarchy.php?type=organisation&programid='.$programid;
         return "M.totara_programassignment.add_category({$this->id}, 'organisations', '{$url}', '{$title}');";
     }
 }
@@ -1017,7 +1017,7 @@ class positions_category extends prog_assignment_category {
 
     function get_js($programid) {
         $title = addslashes_js(get_string('addpositiontoprogram', 'totara_program'));
-        $url = 'find_hierarchy.php?type=position&table=pos&programid='.$programid;
+        $url = 'find_hierarchy.php?type=position&programid='.$programid;
         return "M.totara_programassignment.add_category({$this->id}, 'positions', '{$url}', '{$title}');";
     }
 }
