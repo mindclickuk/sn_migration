@@ -238,6 +238,10 @@ class totara_sync_source_user_database extends totara_sync_source_user {
                 }
             }
 
+            if (empty($dbrow['username'])) {
+                $dbrow['username'] = '';
+            }
+
             if (empty($extdbrow['timemodified'])) {
                 $dbrow['timemodified'] = $now;
             } else {
@@ -246,6 +250,10 @@ class totara_sync_source_user_database extends totara_sync_source_user {
                 if ($parsed_date) {
                     $dbrow['timemodified'] = $parsed_date;
                 }
+            }
+
+            if (isset($dbrow['suspended'])) {
+                $dbrow['suspended'] = empty($dbrow['suspended']) ? 0 : 1;
             }
 
             // Optional date fields.
