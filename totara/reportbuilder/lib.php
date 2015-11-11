@@ -3708,7 +3708,7 @@ class reportbuilder {
         if ($this->toolbarsearch && $this->has_toolbar_filter()) {
             $toolbarsearchtext = isset($SESSION->reportbuilder[$this->get_uniqueid()]['toolbarsearchtext']) ?
                     $SESSION->reportbuilder[$this->get_uniqueid()]['toolbarsearchtext'] : '';
-            $mform = new report_builder_toolbar_search_form($this->report_url(),
+            $mform = new report_builder_toolbar_search_form($this->get_current_url(),
                     array('toolbarsearchtext' => $toolbarsearchtext), 'post', '', null, true, 'toolbarsearch');
             $table->add_toolbar_content($mform->render());
 
