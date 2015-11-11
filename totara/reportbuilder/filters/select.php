@@ -104,7 +104,7 @@ class rb_filter_select extends rb_filter_type {
             $choices = array('' => get_string('anyvalue', 'filters')) + $options;
             $mform->addElement('select', $this->name, $label, $choices, $attr);
             $mform->setType($this->name, PARAM_TEXT);
-            $mform->addHelpButton($this->name, 'filterselect', 'filters');
+            $mform->addHelpButton($this->name, 'filtersimpleselect', 'filters');
             if ($advanced) {
                 $mform->setAdvanced($this->name);
             }
