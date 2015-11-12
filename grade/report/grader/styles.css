@@ -3,6 +3,7 @@
  */
 .path-grade-report-grader .gradeparent {
     position: relative;
+    overflow: auto; /* TL-7844: make scrollable*/
 }
 
 /**
