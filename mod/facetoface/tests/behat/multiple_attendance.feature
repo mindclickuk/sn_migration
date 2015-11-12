@@ -124,6 +124,7 @@ Feature: Take attendance for a Face to face with multiple sessions
     And I press "Save"
     And I click on "Take attendance" "link" in the ".tabtree" "css_element"
     And I click on "Fully attended" "option" in the "first1 last1" "table_row"
+    And I press "Save attendance"
     Then I should see "Successfully updated attendance"
 
     # Run cron to open window and expire the older completion.
@@ -153,6 +154,7 @@ Feature: Take attendance for a Face to face with multiple sessions
     And I press "Save"
     And I click on "Take attendance" "link" in the ".tabtree" "css_element"
     And I click on "Fully attended" "option" in the "first1 last1" "table_row"
+    And I press "Save attendance"
     Then I should see "Successfully updated attendance"
 
     # Run cron to open window for the newer completion.
@@ -185,6 +187,7 @@ Feature: Take attendance for a Face to face with multiple sessions
     And I press "Save"
     And I click on "Take attendance" "link" in the ".tabtree" "css_element"
     And I click on "Fully attended" "option" in the "first1 last1" "table_row"
+    And I press "Save attendance"
     Then I should see "Successfully updated attendance"
 
     # Run cron to open window for the newer completion.
@@ -218,6 +221,7 @@ Feature: Take attendance for a Face to face with multiple sessions
     And I press "Save"
     And I click on "Take attendance" "link" in the ".tabtree" "css_element"
     And I click on "Fully attended" "option" in the "first1 last1" "table_row"
+    And I press "Save attendance"
     Then I should see "Successfully updated attendance"
 
     # Run cron which should do nothing.
@@ -249,6 +253,7 @@ Feature: Take attendance for a Face to face with multiple sessions
     And I press "Save"
     And I click on "Take attendance" "link" in the ".tabtree" "css_element"
     And I click on "Fully attended" "option" in the "first1 last1" "table_row"
+    And I press "Save attendance"
     Then I should see "Successfully updated attendance"
 
     # Verify course completed with newer session date.
@@ -272,6 +277,7 @@ Feature: Take attendance for a Face to face with multiple sessions
     And I press "Save"
     And I click on "Take attendance" "link" in the ".tabtree" "css_element"
     And I click on "Fully attended" "option" in the "first1 last1" "table_row"
+    And I press "Save attendance"
     Then I should see "Successfully updated attendance"
 
     # Verify course still completed with newer session date.
@@ -311,6 +317,7 @@ Feature: Take attendance for a Face to face with multiple sessions
     And I press "Save"
     And I click on "Take attendance" "link" in the ".tabtree" "css_element"
     And I click on "Fully attended" "option" in the "first1 last1" "table_row"
+    And I press "Save attendance"
     Then I should see "Successfully updated attendance"
 
     # Verify course completed with older session date.
@@ -334,6 +341,7 @@ Feature: Take attendance for a Face to face with multiple sessions
     And I press "Save"
     And I click on "Take attendance" "link" in the ".tabtree" "css_element"
     And I click on "Fully attended" "option" in the "first1 last1" "table_row"
+    And I press "Save attendance"
     Then I should see "Successfully updated attendance"
 
     # Verify course still completed with older session date.
