@@ -378,7 +378,7 @@ function xmldb_scorm_upgrade($oldversion) {
     // Moodle v2.9.0 release upgrade line.
     // Put any upgrade step following this.
 
-    if ($oldversion < 2015051102.1) {
+    if ($oldversion < 2015051102.01) {
         $table = new xmldb_table('scorm');
 
         // Changing the default of field forcecompleted on table scorm to 0.
@@ -392,7 +392,7 @@ function xmldb_scorm_upgrade($oldversion) {
         $dbman->change_field_default($table, $field);
 
         // Scorm savepoint reached.
-        upgrade_mod_savepoint(true, 2015051102.1, 'scorm');
+        upgrade_mod_savepoint(true, 2015051102.01, 'scorm');
     }
 
     return true;
