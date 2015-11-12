@@ -108,6 +108,6 @@ Feature: Users can auto-enrol themself in courses where self enrolment is allowe
     And I should see "Courses" in the "Navigation" "block"
     And I click on "Courses" "link_or_button" in the "Navigation" "block"
     And I click on ".rb-display-expand" "css_element"
-    And I click on "[name$='sid']" "css_element" in the "1 January 2020" "table_row"
+    And I click on "[name*='sid']" "css_element" in the "1 January 2020" "table_row"
     And I press "Enrol with - Face-to-face direct enrolment"
     Then I should see "Topic 1"
