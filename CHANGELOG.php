@@ -3,6 +3,236 @@
 
 Totara LMS Changelog
 
+Release 2.9.1 (16th November 2015):
+==================================================
+
+
+Security issues:
+
+    TL-7886        Fixed access checks for the position assignment AJAX script
+    TL-7829        Removed reliance on url parameter for choosing table
+
+                   The script for getting the positions and organisations to assign to a
+                   program relied on a url parameter to choose which table to access. The
+                   table is now chosen according to the type of hierarchy that the query is
+                   for.
+
+    MoodleHQ       Security fixes from MoodleHQ http://docs.moodle.org/dev/Moodle_2.9.3_release_notes
+
+                   Security related issues:
+                   * MDL-51861 enrol: Don't get all parts in get_enrolled_users with groups
+                   * MDL-51684 badges: Make sure 'moodle/badges:viewbadges' is respected
+                   * MDL-51569 mod_choice: validate user actions and availability
+                   * MDL-51091 core_registration: session key check in registration.
+                   * MDL-51000 editor_atto: No autosave for guests
+                   * MDL-50837 mod_scorm: Fix availability checks
+                   * MDL-50426 messaging: Fix permissions checks when sending messages
+                   * MDL-49940 mod_survey: Fix XSS
+                   * MDL-48109 mod_lesson: prevent CSRF on password protected lesson
+
+
+Improvements:
+
+    TL-6282        Improved handling and displaying of the user's name in Core dialogs
+    TL-6529        Added the manager's email as a selectable column for reports that include user's position fields
+    TL-6657        Added actual due dates to program Assignments and audience Enrolled Learning tabs
+
+                   The Assignments tab in programs and certifications and the Enrolled
+                   Learning tab in audiences now include a column "Actual due date". This new
+                   column shows the due date that the user will see. For group assignments
+                   (such as audiences or organisations), clicking the "View dates" link will
+                   show a popup with a list of all assigned users relating to that group
+                   assignment. The help popup for the "Actual due date" column explains why
+                   assignment due dates may be different from the actual due dates. After
+                   upgrading, the "Actual due date" field can be manually added to the
+                   "Audience: Enrolled Learning" embedded report, or you can reset it to the
+                   default to have it automatically added.
+
+    TL-7183        Trigger updates to program user assignments when changing assignments via the audience Enrolled Learning tab
+
+                   When you make a change in an audience's Enrolled Learning tab, it will
+                   immediately trigger an update of program and certification user
+                   assignments. If there are less than 200 total users involved in the program
+                   then the users will be processed immediately, otherwise the update will be
+                   deferred. By default, deferred program user assignments are processed the
+                   next time cron runs. This patch makes the behaviour consistent with making
+                   changes in a program's Assignments tab.
+
+    TL-7256        Mark programs for deferred user assignment update when assignment membership changes
+
+                   This patch includes several improvements which cause program and
+                   certification memberships to be updated sooner:
+                   * When audience membership changes, either by a user manually editing an
+                   audience or when a dynamic audience's membership is automatically updated,
+                   related programs and certifications will be marked as having user
+                   assignment changes deferred.
+                   * When a user's assigned position, organisation or manager change, programs
+                   and certifications related to the old and new positions, organisations and
+                   management hierarchy are marked as having user assignment changes
+                   deferred.
+
+                   With this change in place, all changes to program membership should now be
+                   detected as they occur and are either processed immediately or by the
+                   "Deferred program assignments changes" scheduled task. As such, we
+                   recommend setting the related tasks to their default schedules: "Deferred
+                   program assignments changes" can be run every time cron runs, while
+                   "Program user assignments" only needs to be run once per day.
+
+    TL-7575        Removed Totara menu from the print layout
+    TL-7741        Removed HTML table behind the Weekend Days setting
+    TL-7745        Added labels to settings on Site administration > Front page > Front page settings
+    TL-7748        Improved Accessibility when editing the Site administration > Plugins > Activity modules > Quiz Settings
+    TL-7750        Improved layout of "User Fullname (with links to learning components)" Report builder column
+    TL-7792        Added settings to enforce https access and prevent embedding of content in external Flash and PDF files
+    TL-7813        Reduced events triggered when program user assignments are updated
+
+                   Some events were being triggered unnecessarily when updating program and
+                   certification user assignments. They will now only be triggered if it is
+                   certain that there are changes that need to be signalled.
+
+                   Please remember that user_assignments_task by default is scheduled to
+                   execute just once per day, whereas assignments_deferred_task is designed to
+                   be run every time cron runs.
+
+    TL-7824        Moved program user assignment deferred flag reset to start of function
+
+                   If changes are made to a program's assignments while the function is
+                   running in cron, those changes will be processed the next time the deferred program
+                   assignments scheduled task runs (default: Every cron run), rather than having to
+                   wait until  program user assignments scheduled task runs (default: Nightly) or
+                   another change is made.
+
+    TL-7878        Added a page title when adding and removing Feedback360 requests with javascript turned off
+
+
+Bug fixes:
+
+    TL-6936        Face-to-face direct enrolment plugin allows users to signup to more then one Face-to-face.
+
+                   Users can now sign up to one session per Face-to-face in the course via the
+                   Face-to-face direct enrolment plugin. If at least one of the session
+                   signups was successful then user will be enrolled to the course.
+
+                   If all successful signups require managers approval then course enrolment
+                   will be pending. T&Cs when enabled are required and will be checked before
+                   any signups or enrolments are processed.
+
+    TL-6957        Display correct due date value in the upcoming certifications block
+    TL-6981        Reaggregate course completion when activity completion criteria are unlocked without deletion
+
+                   Previously, course completion status was only reaggregated if "unlock with
+                   delete" was used. If "unlock without delete" was used, it was possible that
+                   users who meet the new completion criteria were not marked complete, and
+                   this would not be fixed by any cron task. This could lead to users being
+                   stuck with an incomplete status. Now, the records will be marked for
+                   reaggregation and will be processed by the completion cron task.
+
+    TL-7273        Corrected the help text for Report builder simple select filters
+
+                   Filters that use a drop-down select with no additional options such as 'not
+                   equal to' now have correct corresponding help text, rather than referring
+                   to additional options that do not exist.
+
+    TL-7437        Switched the badges backpack URL to use HTTPS
+    TL-7514        Fixed the display order of Face-to-face sessions for the Face-to-face direct enrolment plugin
+
+                   Sessions will now be displayed in order of their start date/times instead
+                   of when they were created
+
+    TL-7559        Enabled the transfer of position and organistion custom fields for the database source of HR Sync
+    TL-7562        Fixed strings for audience rules based on course and program completion
+    TL-7594        Fixed users booked on a Face-to-face session with no dates being incorrectly removed when another user cancels their booking
+    TL-7602        Re-enabled the Save and Cancel buttons for the Face-to-face take attendance tab
+
+                   Save and Cancel buttons present in previous versions have been reintroduced
+                   to the Face-to-face take attendance tab. Save must be clicked in order to
+                   update attendance records.
+
+    TL-7611        Fixed the handling of username and suspended fields for external database sources in HR Import
+    TL-7644        Corrected the amount of white space in the 'recordoflearning' language string
+    TL-7659        Prevented cancellation notifications being sent to users booked in completed Face-to-face sessions when the course is deleted
+    TL-7660        Fixed the behaviour of pagination on hierarchy index pages
+
+                   When viewing Positions, Organisations, Competencies or Goals within a
+                   framework, pagination was not working correctly and instead was displaying
+                   all of the items even though the paging bar was displaying the correct
+                   number of pages.
+
+    TL-7664        Fixed dynamic audience rules based upon checkbox position custom fields
+    TL-7675        Fixed the display of an aggregation warning for Report builder columns
+
+                   The warning that column aggregation options may not be compatible with
+                   reports that use aggregation internally is now shown only for reports that
+                   actually use aggregation internally.
+
+    TL-7676        Fixed the display of duplicate categories in pie charts
+    TL-7686        Fixed URL validation when adding new links to the quicklinks block
+    TL-7695        Re-aggregate when course completion criteria is changed without deletion
+
+                   When changing course completion criteria, and unlocking without deleting
+                   existing completion data, re-aggregation was not being performed. Now,
+                   users who are assigned but not complete and match the new criteria will be
+                   marked complete after cron re-aggregates them. To fix any users affected by
+                   this problem, an upgrade script will mark all incomplete users in all
+                   courses for re-aggregation, which will be performed by cron, and may take a
+                   while to process on larger sites.
+
+    TL-7698        Fixed the handling of position and organisation 'Text area' custom fields within HR Import
+    TL-7711        Fixed the "duedate(extra info)" column for Report builder export to pdf
+    TL-7724        Fixed an error when adding audience visibility during program creation.
+
+                   A user who was assigned the site manager role within a category context
+                   would previously be presented with an error when giving audiences
+                   visibility during program creation. This error no longer appears.
+
+    TL-7732        Allow HR import to set posenddate value as blank when posstartdate is set
+    TL-7769        The Report builder "Manager's name" filter now counts users without a manager as "empty"
+    TL-7770        Fixed date validation for Face-to-face sessions when removing dates or wait-listing a session
+    TL-7783        Fixed the ordering of the Face-to-face waitlist
+
+                   Previously when a user cancelled an overbooked session the Face-to-face
+                   replaced them with a user from the waitlist based off the user's names, now
+                   the replacement is decided based off their signup time.
+
+    TL-7784        Fixed the help text for Face-to-face 'minimum capacity' setting
+    TL-7789        Fixed the formatting of the Face-to-face intro page
+    TL-7821        Fixed a Totara Connect upgrade step that introduced a non-existent local plugin
+    TL-7833        Fixed cron failure when sending Face-to-face notifications
+
+                   When scheduled Face-to-face notifications were being sent out, the cron
+                   task would potentially fail if notifications were going to users who had
+                   their session bookings approved by a manager. This has now been fixed,
+                   notifications go out as normal, and cron is not disrupted.
+
+    TL-7836        Ensured images are restricted by their assigned widths
+
+                   If an image is resized from its native dimensions and then displayed,
+                   Internet Explorer would display the image at its native size, and not the
+                   size that had been requested.
+
+    TL-7844        Grader report now scrolls when it is too wide for the screen
+    TL-7849        Removed reports and saved searches from the report table block when users do not have access
+    TL-7851        Fixed the display of the "duedates" column for program and certification overview Report builder reports
+    TL-7876        Stopped the incorrect archiving of facetoface sessions without dates
+
+                   Previously if a user was waitlisted on a Face-to-face session which had no
+                   dates set, in a Certification Course. When the user's recertification
+                   window opened, the signup would be marked as archived, meaning it would no
+                   longer count towards course completion.
+
+    TL-7881        Recreate course completion records when activity criteria are reset with deletion
+
+                   Course completion records for users who were not complete according to the
+                   new criteria were not being recreated immediately. Although the records
+                   were being created when the completion cron task was run or when a user's
+                   status in the course changed, it was possible that some unexpected
+                   behaviour could have occurred due to the missing records.
+
+    TL-7883        Fixed date handling on the Face-to-face block calendar page
+    TL-7909        Make sure url params are passed when using report builder toolbar search
+    TL-7921        Fixed regression with media playback when request_order="GPC" in PHP.ini
+
+
 Release 2.9.0 (3rd November 2015):
 ==================================
 
@@ -43,7 +273,7 @@ New features:
                    values entered for a personal goal will be associated with the user whom
                    the personal goal belongs to.
 
-                   Thanks to Anuchit Veerasiriyanon at Learning Pool for the contribution.
+                   Thanks to Ryan Lafferty at Learning Pool for the contribution.
 
     TL-5094        Support for anonymous 360 feedback
 
@@ -884,7 +1114,7 @@ Contributions:
 
     * Andrew Hancox at Synergy Learning - TL-6454
     * Dennis Heany at Learning Pool - TL-6525
-    * Anuchit Veerasiriyanon at Learning Pool - TL-4485
+    * Ryan Lafferty at Learning Pool - TL-4485
     * Eugene Venter at Catalyst NZ - TL-6022, TL-6023, TL-6308, TL-6453, TL-6496, TL-6497, TL-7529
     * Maccabi Healthcare Services a client of Kineo Israel - TL-6684
     * Pavel Tsakalidis at Kineo UK   - TL-6531
