@@ -44,13 +44,13 @@ Feature: Generation of program assignment exceptions
     And I click on "fn_002 ln_002 (user002@example.com)" "link" in the "add-assignment-dialog-5" "totaradialogue"
     And I click on "Ok" "button" in the "add-assignment-dialog-5" "totaradialogue"
     And I wait "2" seconds
-    And I click on "Set completion" "link" in the ".completionlink_3" "css_element"
+    And I click on "Set due date" "link" in the ".completionlink_3" "css_element"
     And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
     And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
         | timeamount | 1 |
     And I click on "Set time relative to event" "button" in the "completion-dialog" "totaradialogue"
-    And I click on "Set completion" "link" in the ".completionlink_4" "css_element"
+    And I click on "Set due date" "link" in the ".completionlink_4" "css_element"
     And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
     And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
@@ -96,7 +96,7 @@ Feature: Generation of program assignment exceptions
     And I click on "fn_003 ln_003 (user003@example.com)" "link" in the "add-assignment-dialog-5" "totaradialogue"
     And I click on "Ok" "button" in the "add-assignment-dialog-5" "totaradialogue"
     And I wait "2" seconds
-    And I click on "Set completion" "link" in the ".completionlink_5" "css_element"
+    And I click on "Set due date" "link" in the ".completionlink_5" "css_element"
     And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
     And I click on "Program enrollment date" "option" in the "#eventtype.eventtype" "css_element"
     And I set the following fields to these values:
@@ -214,7 +214,7 @@ Feature: Generation of program assignment exceptions
     And I click on "fn_002 ln_002 (user002@example.com)" "link" in the "add-assignment-dialog-5" "totaradialogue"
     And I click on "Ok" "button" in the "add-assignment-dialog-5" "totaradialogue"
     And I wait "2" seconds
-    And I click on "Set completion" "link" in the ".completionlink_3" "css_element"
+    And I click on "Set due date" "link" in the ".completionlink_3" "css_element"
     And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
     And I click on "Profile field date" "option" in the "#eventtype" "css_element"
     And I click on "Date & Time" "link" in the "completion-event-dialog" "totaradialogue"
@@ -300,21 +300,21 @@ Feature: Generation of program assignment exceptions
     And I click on "Ok" "button" in the "add-assignment-dialog-5" "totaradialogue"
 
     Then I wait until the page is ready
-    And I click on "Set completion" "link" in the ".completionlink_3" "css_element"
+    And I click on "Set due date" "link" in the ".completionlink_3" "css_element"
     And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
     And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
       | timeamount | 1 |
     And I click on "Set time relative to event" "button" in the "completion-dialog" "totaradialogue"
 
-    And I click on "Set completion" "link" in the ".completionlink_4" "css_element"
+    And I click on "Set due date" "link" in the ".completionlink_4" "css_element"
     And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
     And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
       | timeamount | 1 |
     And I click on "Set time relative to event" "button" in the "completion-dialog" "totaradialogue"
 
-    And I click on "Set completion" "link" in the ".completionlink_5" "css_element"
+    And I click on "Set due date" "link" in the ".completionlink_5" "css_element"
     And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
     And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
@@ -357,15 +357,24 @@ Feature: Generation of program assignment exceptions
     And I click on "Save changes" "button"
     Then I should see "4 learner(s) assigned. 3 learner(s) are active, 0 with exception(s)"
 
-    Then I click on "Complete within" "link" in the ".completionlink_3" "css_element"
+    Then I should not see "No" in the "fn_001" "table_row"
+    And I click on "Set due date" "link" in the ".completionlink_3" "css_element"
+    And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
+    And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
       | timeamount | 2 |
     And I click on "Set time relative to event" "button" in the "completion-dialog" "totaradialogue"
-    And I click on "Complete within" "link" in the ".completionlink_4" "css_element"
+    And I should not see "No" in the "fn_002" "table_row"
+    And I click on "Set due date" "link" in the ".completionlink_4" "css_element"
+    And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
+    And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
       | timeamount | 2 |
     And I click on "Set time relative to event" "button" in the "completion-dialog" "totaradialogue"
-    And I click on "Complete within" "link" in the ".completionlink_5" "css_element"
+    And I should not see "No" in the "fn_003" "table_row"
+    And I click on "Set due date" "link" in the ".completionlink_5" "css_element"
+    And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
+    And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
       | timeamount | 2 |
     And I click on "Set time relative to event" "button" in the "completion-dialog" "totaradialogue"
@@ -383,7 +392,7 @@ Feature: Generation of program assignment exceptions
     Then I should see "4 learner(s) assigned. 3 learner(s) are active, 0 with exception(s)"
 
     Then I click on "Assignments" "link"
-    And I click on "Set completion" "link" in the ".completionlink_6" "css_element"
+    And I click on "Set due date" "link" in the ".completionlink_6" "css_element"
     And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
     And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
@@ -395,22 +404,34 @@ Feature: Generation of program assignment exceptions
     Then I should see "4 learner(s) assigned. 2 learner(s) are active, 1 with exception(s)"
 
     Then I click on "Assignments" "link"
-    And I click on "Complete within" "link" in the ".completionlink_3" "css_element"
+    And I should not see "No" in the "fn_001" "table_row"
+    And I click on "Set due date" "link" in the ".completionlink_3" "css_element"
+    And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
+    And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
       | timeamount | 4 |
     And I click on "Set time relative to event" "button" in the "completion-dialog" "totaradialogue"
 
-    And I click on "Complete within" "link" in the ".completionlink_4" "css_element"
+    And I should not see "No" in the "fn_002" "table_row"
+    And I click on "Set due date" "link" in the ".completionlink_4" "css_element"
+    And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
+    And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
       | timeamount | 4 |
     And I click on "Set time relative to event" "button" in the "completion-dialog" "totaradialogue"
 
-    And I click on "Complete within" "link" in the ".completionlink_5" "css_element"
+    And I should not see "No" in the "fn_003" "table_row"
+    And I click on "Set due date" "link" in the ".completionlink_5" "css_element"
+    And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
+    And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
       | timeamount | 4 |
     And I click on "Set time relative to event" "button" in the "completion-dialog" "totaradialogue"
 
-    And I click on "Complete within" "link" in the ".completionlink_6" "css_element"
+    And I should not see "No" in the "fn_004" "table_row"
+    And I click on "Set due date" "link" in the ".completionlink_6" "css_element"
+    And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
+    And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
       | timeamount | 2 |
     And I click on "Set time relative to event" "button" in the "completion-dialog" "totaradialogue"
@@ -419,7 +440,10 @@ Feature: Generation of program assignment exceptions
     And I click on "Save changes" "button"
     Then I should see "4 learner(s) assigned. 3 learner(s) are active, 1 with exception(s)"
 
-    And I click on "Complete within" "link" in the ".completionlink_6" "css_element"
+    And I should not see "No" in the "fn_004" "table_row"
+    And I click on "Set due date" "link" in the ".completionlink_6" "css_element"
+    And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
+    And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
       | timeamount | 4 |
     And I click on "Set time relative to event" "button" in the "completion-dialog" "totaradialogue"
@@ -454,14 +478,14 @@ Feature: Generation of program assignment exceptions
     And I click on "Ok" "button" in the "add-assignment-dialog-5" "totaradialogue"
 
     Then I wait until the page is ready
-    And I click on "Set completion" "link" in the ".completionlink_3" "css_element"
+    And I click on "Set due date" "link" in the ".completionlink_3" "css_element"
     And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
     And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
       | timeamount | 2 |
     And I click on "Set time relative to event" "button" in the "completion-dialog" "totaradialogue"
 
-    And I click on "Set completion" "link" in the ".completionlink_4" "css_element"
+    And I click on "Set due date" "link" in the ".completionlink_4" "css_element"
     And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
     And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
@@ -483,7 +507,10 @@ Feature: Generation of program assignment exceptions
     Then I should see "2 learner(s) assigned. 2 learner(s) are active, 0 with exception(s)"
 
     Then I click on "Assignments" "link"
-    And I click on "Complete within" "link" in the ".completionlink_3" "css_element"
+    And I should not see "No" in the "fn_001" "table_row"
+    And I click on "Set due date" "link" in the ".completionlink_3" "css_element"
+    And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
+    And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
       | timeamount | 5 |
     And I click on "Set time relative to event" "button" in the "completion-dialog" "totaradialogue"
@@ -492,12 +519,18 @@ Feature: Generation of program assignment exceptions
     And I click on "Save changes" "button"
     Then I should see "2 learner(s) assigned. 2 learner(s) are active, 0 with exception(s)"
 
-    Then I click on "Complete within" "link" in the ".completionlink_3" "css_element"
+    Then I should not see "No" in the "fn_001" "table_row"
+    And I click on "Set due date" "link" in the ".completionlink_3" "css_element"
+    And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
+    And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
       | timeamount | 2 |
     And I click on "Set time relative to event" "button" in the "completion-dialog" "totaradialogue"
 
-    Then I click on "Complete within" "link" in the ".completionlink_4" "css_element"
+    Then I should not see "No" in the "fn_002" "table_row"
+    And I click on "Set due date" "link" in the ".completionlink_4" "css_element"
+    And I click on "Week(s)" "option" in the "#timeperiod" "css_element"
+    And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
       | timeamount | 2 |
     And I click on "Set time relative to event" "button" in the "completion-dialog" "totaradialogue"

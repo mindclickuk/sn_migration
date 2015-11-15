@@ -36,7 +36,7 @@ Feature: Enable request extension in programs
       | Allow extension requests | 1 |
     And I press "Save changes"
     And I click on "Assignments" "link" in the "#program-overview" "css_element"
-    And I click on "Set completion" "link"
+    And I click on "Set due date" "link"
     And I click on "Day(s)" "option" in the "#timeperiod" "css_element"
     And I click on "Program enrollment date" "option" in the "#eventtype" "css_element"
     And I set the following fields to these values:
