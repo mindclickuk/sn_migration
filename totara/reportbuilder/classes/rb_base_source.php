@@ -2810,7 +2810,7 @@ abstract class rb_base_source {
             'prog',
             'summary',
             get_string('programsummary', $langfile),
-            $DB->sql_compare_text("$join.summary", 1024),
+            "$join.summary",
             array(
                 'joins' => $join,
                 'displayfunc' => 'tinymce_textarea',
