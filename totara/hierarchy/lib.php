@@ -607,6 +607,47 @@ class hierarchy {
     }
 
     /**
+     * Produces an array of visible records as well as path and parent maps.
+     *
+     * @since 2.9.1, 2.7.10
+     * @return array[]
+     */
+    protected function get_visible_items_and_map() {
+        global $DB;
+        $records = $DB->get_records($this->shortprefix, array('visible' => '1'), 'path', 'id,fullname,shortname,parentid,sortthread,path');
+        $pathmap = array();
+        $parentmap = array();
+        foreach ($records as $record) {
+            // Process the parent map.
+            if (!isset($parentmap[$record->parentid])) {
+                $parentmap[$record->parentid] = array($record->id);
+            } else {
+                $parentmap[$record->parentid][] = $record->id;
+            }
+
+            // Now process the path map.
+            $path = trim($record->path, '/');
+            $bits = explode('/', $path);
+            array_pop($bits); // We lose the last item - its the current item.
+            $paths = array();
+            $path = '/';
+            foreach ($bits as $id) {
+                $path .= $id;
+                $paths[] = $path;
+                $path .= '/';
+            }
+            foreach ($paths as $path) {
+                if (!isset($pathmap[$path])) {
+                    $pathmap[$path] = array($record->id);
+                } else {
+                    $pathmap[$path][] = $record->id;
+                }
+            }
+        }
+        return array($records, $pathmap, $parentmap);
+    }
+
+    /**
      * Returns an object that can be used to
      * build a select form element based on the hierarchy
      *
@@ -619,9 +660,11 @@ class hierarchy {
      * @param string $path Current path for select, used recursively
      * @param array $records Records to be passed as function is recursively called. Generated the first
      *                       time it is called so no need to set this. Used to save db calls
+     * @param array $pathmap A map relating records to the elements in there path (cummulitive). Since 2.9.2, 2.7.10
+     * @param array $parentmap A map relating records to there parents. Since 2.9.2, 2.7.10
      * @return Nothing returned, output obtained via reference to &$list
      */
-    function make_hierarchy_list(&$list, $id = NULL, $showchildren=false, $shortname=false, $path = "", $records=null) {
+    public function make_hierarchy_list(&$list, $id = NULL, $showchildren=false, $shortname=false, $path = "", $records=null, $pathmap = null, $parentmap = null) {
         global $DB;
         // initialize the array if needed
         if (!is_array($list)) {
@@ -635,7 +678,7 @@ class hierarchy {
         if (empty($records)) {
             // must be first time through function, get the records, and pass to
             // future uses to save db calls
-            $records = $DB->get_records($this->shortprefix, array('visible' => '1'), 'path', 'id,fullname,shortname,parentid,sortthread,path');
+            list($records, $pathmap, $parentmap) = $this->get_visible_items_and_map();
         }
 
         if ($id == 0) {
@@ -651,20 +694,16 @@ class hierarchy {
             // add item
             $list[$item->id] = $path;
             if ($showchildren === true) {
-                // if children wanted and there are some
-                // show a second option with children
-                // does the same as:
-                //$descendants = $this->get_item_descendants($id);
+                // If children wanted and there are some show a second option with children does the same as:
+                //      $descendants = $this->get_item_descendants($id);
                 // but without the db calls
                 $descendants = array();
-                foreach ($records as $key => $record) {
-                    if (substr($record->path, 0, strlen($item->path . '/')) == $item->path . '/') {
-                        $descendants[$key] = $record;
-                    }
+                if (isset($pathmap[$item->path])) {
+                    $descendants = $pathmap[$item->path];
                 }
                 if (count($descendants)>1) {
                     // add comma separated list of all children too
-                    $idstr = implode(',',array_keys($descendants));
+                    $idstr = implode(',', $descendants);
                     $idstr = $item->id.','.$idstr;
                     $list[$idstr] = $path." (and all children)";
                 }
@@ -673,9 +712,9 @@ class hierarchy {
             // $children = $this->get_items_by_parent($id);
             // but without the db calls
             $children = array();
-            foreach ($records as $key => $record) {
-                if ($record->parentid == $id) {
-                    $children[$key] = $record;
+            if (isset($parentmap[$id])) {
+                foreach ($parentmap[$id] as $childid) {
+                    $children[$childid] = $records[$childid];
                 }
             }
         }
@@ -683,7 +722,7 @@ class hierarchy {
         // now deal with children of this item
         if ($children) {
             foreach ($children as $child) {
-                $this->make_hierarchy_list($list, $child->id, $showchildren, $shortname, $path, $records);
+                $this->make_hierarchy_list($list, $child->id, $showchildren, $shortname, $path, $records, $pathmap, $parentmap);
             }
         }
     }
