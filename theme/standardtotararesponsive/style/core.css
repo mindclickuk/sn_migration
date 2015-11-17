@@ -621,8 +621,8 @@ fieldset.surround,
     border: 1px solid #000000;
     padding: 5px;
 }
-fieldset.surround legend,
-.mform fieldset.surround legend {
+fieldset.surround > legend,
+.mform fieldset.surround > legend {
     font-weight:bold;
     font-size:16px;
     padding: 0px 5px;
