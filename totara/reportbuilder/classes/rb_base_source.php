@@ -2116,10 +2116,11 @@ abstract class rb_base_source {
                 'addtypetoheading' => $addtypetoheading
             )
         );
-        // Only include this column if email is among fields allowed
-        // by showuseridentity setting.
-        if (!empty($CFG->showuseridentity) &&
-            in_array('email', explode(',', $CFG->showuseridentity))) {
+        // Only include this column if email is among fields allowed by showuseridentity setting or
+        // if the current user has the 'moodle/site:config' capability.
+        $canview = !empty($CFG->showuseridentity) && in_array('email', explode(',', $CFG->showuseridentity));
+        $canview |= has_capability('moodle/site:config', context_system::instance());
+        if ($canview) {
             $columnoptions[] = new rb_column_option(
                 $groupname,
                 'emailunobscured',
@@ -2298,9 +2299,11 @@ abstract class rb_base_source {
             'city' => get_string('usercity', 'totara_reportbuilder'),
             'email' => get_string('useremail', 'totara_reportbuilder'),
         );
-        // Only include this filter if email is among fields allowed
-        // by showuseridentity setting.
-        if (!empty($CFG->showuseridentity) && in_array('email', explode(',', $CFG->showuseridentity))) {
+        // Only include this filter if email is among fields allowed by showuseridentity setting or
+        // if the current user has the 'moodle/site:config' capability.
+        $canview = !empty($CFG->showuseridentity) && in_array('email', explode(',', $CFG->showuseridentity));
+        $canview |= has_capability('moodle/site:config', context_system::instance());
+        if ($canview) {
             $fields['emailunobscured'] = get_string('useremailunobscured', 'totara_reportbuilder');
         }
 
@@ -4219,10 +4222,11 @@ abstract class rb_base_source {
                 'outputformat' => 'text'
             )
         );
-        // Only include this column if email is among fields allowed
-        // by showuseridentity setting.
-        if (!empty($CFG->showuseridentity) &&
-            in_array('email', explode(',', $CFG->showuseridentity))) {
+        // Only include this column if email is among fields allowed by showuseridentity setting or
+        // if the current user has the 'moodle/site:config' capability.
+        $canview = !empty($CFG->showuseridentity) && in_array('email', explode(',', $CFG->showuseridentity));
+        $canview |= has_capability('moodle/site:config', context_system::instance());
+        if ($canview) {
             $columnoptions[] = new rb_column_option(
                 'user',
                 'manageremailunobscured',
@@ -4277,9 +4281,11 @@ abstract class rb_base_source {
             get_string('usersmanageremail', 'totara_reportbuilder'),
             'text'
         );
-        // Only include this filter if email is among fields allowed
-        // by showuseridentity setting.
-        if (!empty($CFG->showuseridentity) && in_array('email', explode(',', $CFG->showuseridentity))) {
+        // Only include this filter if email is among fields allowed by showuseridentity setting or
+        // if the current user has the 'moodle/site:config' capability.
+        $canview = !empty($CFG->showuseridentity) && in_array('email', explode(',', $CFG->showuseridentity));
+        $canview |= has_capability('moodle/site:config', context_system::instance());
+        if ($canview) {
             $filteroptions[] = new rb_filter_option(
                 'user',
                 'manageremailunobscured',
