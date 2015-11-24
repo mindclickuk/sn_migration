@@ -44,8 +44,37 @@ if (!$cm = get_coursemodule_from_instance("facetoface", $facetoface->id, $course
 }
 $context = context_module::instance($cm->id);
 
-require_login($course, true, $cm);
-require_capability('mod/facetoface:view', $context);
+require_login();
+
+if (!$facetoface->approvalreqd or !$session->selfapproval) {
+    // This should not happen unless there is a concurrent change of settings.
+    print_error('error');
+}
+
+if (is_enrolled($context, null, '', true)) {
+    // User is already enrolled, let them view the text again.
+    require_login($course, true, $cm);
+    require_capability('mod/facetoface:view', $context);
+
+} else {
+    // Can user self enrol via any instance?
+    if (!totara_course_is_viewable($course->id)) {
+        print_error('error');
+    }
+    /** @var enrol_totara_facetoface_plugin $enrol */
+    $enrol = enrol_get_plugin('totara_facetoface');
+    $allow = false;
+    $instances = $DB->get_records('enrol', array('courseid' => $course->id, 'enrol' => 'totara_facetoface'));
+    foreach ($instances as $instance) {
+        if ($enrol->can_self_enrol($instance, true) === true) {
+            $allow = true;
+            break;
+        }
+    }
+    if (!$allow) {
+        print_error('cannotenrol', 'enrol_totara_facetoface');
+    }
+}
 
 $pagetitle = format_string($facetoface->name);
 
