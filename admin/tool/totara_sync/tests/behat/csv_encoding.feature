@@ -1,4 +1,4 @@
-@totara @tool_totara_sync
+@totara @tool_totara_sync @javascript @_file_upload
 Feature: An admin can import different CSV enconding through HR import
 
   Background:
@@ -18,7 +18,6 @@ Feature: An admin can import different CSV enconding through HR import
       | Source | CSV |
     And I press "Save changes"
 
-  @javascript
   Scenario: add an user from user utf8 bom enconding file
     Given I navigate to "CSV" node in "Site administration > HR Import > Sources > User"
     And I should see "\"firstname\""
@@ -38,7 +37,6 @@ Feature: An admin can import different CSV enconding through HR import
     Then I should see "bob marley"
     Then I should see "Žlutý Koníček"
 
-  @javascript
   Scenario: add another user from user win1252 encoding file
     Given I navigate to "CSV" node in "Site administration > HR Import > Sources > User"
     And I set the field "CSV file encoding" to "WINDOWS-1250"
