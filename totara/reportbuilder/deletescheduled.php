@@ -62,7 +62,7 @@ if ($confirm == 1) {
         $DB->delete_records_select('report_builder_schedule_email_systemuser', $select, array($scheduledreport->id));
         $DB->delete_records_select('report_builder_schedule_email_external', $select, array($scheduledreport->id));
         $DB->delete_records('report_builder_schedule', array('id' => $scheduledreport->id));
-        $report = new reportbuilder($id);
+        $report = new reportbuilder($scheduledreport->reportid);
         \totara_reportbuilder\event\report_updated::create_from_report($report, 'scheduled')->trigger();
         totara_set_notification(get_string('deletedscheduledreport', 'totara_reportbuilder', format_string($reportname)),
                                 $returnurl, array('class' => 'notifysuccess'));
