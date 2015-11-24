@@ -33,24 +33,32 @@ require_once($CFG->dirroot.'/totara/hierarchy/prefix/goal/assign/lib.php');
 require_once($CFG->dirroot.'/totara/hierarchy/prefix/goal/lib.php');
 
 $module = required_param('module', PARAM_COMPONENT);
-if ($module === '') {
-    throw new invalid_parameter_exception("Invalid module name");
+if ($module !== 'goal') {
+    throw new invalid_parameter_exception("Invalid module name, must be goal");
 }
 
 $grouptype = required_param('grouptype', PARAM_ALPHA);
 $itemid = required_param('itemid', PARAM_INT);
 $add = optional_param('add', false, PARAM_BOOL);
 
-$urlparams = array('module' => $module, 'grouptype' => $grouptype, 'itemid' => $itemid, 'add' => $add);
+require_login();
+require_sesskey();
 
-$baseclassname = "totara_assign_{$module}";
-$item = $DB->get_record('goal', array('id' => $itemid));
-$baseclass = new $baseclassname($module, $item);
+// Check if Goals are enabled.
+goal::check_feature_enabled();
 
-$PAGE->set_context(context_system::instance());
+$sitecontext = context_system::instance();
+require_capability("totara/hierarchy:managegoalassignments", $sitecontext);
+
+$hierarchy = hierarchy::load_hierarchy($module);
+if (!$item = $hierarchy->get_item($itemid)) {
+    print_error('error:invaliditemid', 'totara_hierarchy');
+}
+
+$PAGE->set_context($sitecontext);
 
 // Determine if this assignment is allowed, instantiate the appropriate group class.
-$grouptypes = $baseclassname::get_assignable_grouptypes();
+$grouptypes = totara_assign_goal::get_assignable_grouptypes();
 if (!in_array($grouptype, $grouptypes)) {
     $a = new stdClass();
     $a->grouptype = $grouptype;
@@ -58,9 +66,11 @@ if (!in_array($grouptype, $grouptypes)) {
     print_error('error:assignmentgroupnotallowed', 'totara_core', null, $a);
 }
 
+$baseclass = new totara_assign_goal($module, $item);
 $grouptypeobj = $baseclass->load_grouptype($grouptype);
 
 // Handle new assignments.
+$urlparams = array('module' => $module, 'grouptype' => $grouptype, 'itemid' => $itemid, 'add' => $add);
 if ($add) {
     $out = '';
     // Is there any valid data?

@@ -56,6 +56,12 @@ $includechildren = optional_param('includechildren', false, PARAM_BOOL);
 // No javascript parameters.
 $nojs = optional_param('nojs', false, PARAM_BOOL);
 $returnurl = optional_param('returnurl', '', PARAM_LOCALURL);
+
+require_login();
+
+// Check if Goals are enabled.
+goal::check_feature_enabled();
+
 $context = context_system::instance();
 $strfindgoals = get_string('findgoals', 'totara_hierarchy');
 

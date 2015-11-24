@@ -34,6 +34,9 @@ $prefix        = required_param('prefix', PARAM_ALPHA);
 $id          = required_param('id', PARAM_INT);
 $edit        = optional_param('edit', -1, PARAM_BOOL);
 $frameworkid = optional_param('framework', 0, PARAM_INT);
+
+require_login();
+
 $sitecontext = context_system::instance();
 $shortprefix = hierarchy::get_short_prefix($prefix);
 
@@ -46,7 +49,7 @@ $hierarchy = hierarchy::load_hierarchy($prefix);
  */
 
 if (!$item = $hierarchy->get_item($id)) {
-    print_error('itemdoesntexist', 'totara_hierarchy', null, $prefix);
+    print_error('error:invaliditemid', 'totara_hierarchy');
 }
 $framework = $hierarchy->get_framework($item->frameworkid);
 

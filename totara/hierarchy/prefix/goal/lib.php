@@ -156,7 +156,7 @@ class goal extends hierarchy {
             'name' => 'totara_assigngroups',
             'fullpath' => '/totara/hierarchy/prefix/goal/assign/assigngroup_dialog.js',
             'requires' => array('json'));
-        $args = array('args' => "{\"module\":\"goal\"}");
+        $args = array('args'=>'{"module":"goal","sesskey":"'.sesskey().'"}');
         $PAGE->requires->js_init_call('M.totara_assigngroupdialog.init', $args, false, $jsmodule);
     }
 
