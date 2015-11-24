@@ -2734,6 +2734,12 @@ abstract class rb_base_source {
                 'attributes' => rb_filter_option::select_width_limiter(),
             )
         );
+        $filteroptions[] = new rb_filter_option(
+            'course',
+            'id',
+            get_string('coursemultiitem', 'totara_reportbuilder'),
+            'course_multi'
+        );
         return true;
     }
 
