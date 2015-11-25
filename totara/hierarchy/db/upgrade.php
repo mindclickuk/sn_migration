@@ -1368,5 +1368,25 @@ function xmldb_totara_hierarchy_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2015092100, 'totara', 'hierarchy');
     }
 
+    if ($oldversion < 2015100201) {
+        $field = new xmldb_field('shortname', XMLDB_TYPE_CHAR, '100', null, null, null, null, 'id');
+
+
+        // Create the shortname field for company goal types.
+        $table = new xmldb_table('goal_type');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Create the shortname field for personal goal types.
+        $table = new xmldb_table('goal_user_type');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Hierarchy savepoint reached.
+        upgrade_plugin_savepoint(true, 2015100201, 'totara', 'hierarchy');
+    }
+
     return true;
 }
