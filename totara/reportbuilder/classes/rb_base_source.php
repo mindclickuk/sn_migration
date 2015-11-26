@@ -3267,6 +3267,13 @@ abstract class rb_base_source {
         );
         $columnoptions[] = new rb_column_option(
             'user',
+            'organisationid2',
+            get_string('usersorgid', 'totara_reportbuilder'),
+            "$posassign.organisationid",
+            array('joins' => $posassign, 'selectable' => false)
+        );
+        $columnoptions[] = new rb_column_option(
+            'user',
             'organisationidnumber',
             get_string('usersorgidnumber', 'totara_reportbuilder'),
             "$org.idnumber",
@@ -3312,6 +3319,13 @@ abstract class rb_base_source {
         $columnoptions[] = new rb_column_option(
             'user',
             'positionid',
+            get_string('usersposid', 'totara_reportbuilder'),
+            "$posassign.positionid",
+            array('joins' => $posassign, 'selectable' => false)
+        );
+        $columnoptions[] = new rb_column_option(
+            'user',
+            'positionid2',
             get_string('usersposid', 'totara_reportbuilder'),
             "$posassign.positionid",
             array('joins' => $posassign, 'selectable' => false)
@@ -3553,6 +3567,15 @@ abstract class rb_base_source {
         );
         $filteroptions[] = new rb_filter_option(
             'user',
+            'organisationid2',
+            get_string('usersorgmulti', 'totara_reportbuilder'),
+            'hierarchy_multi',
+            array(
+                'hierarchytype' => 'org',
+            )
+        );
+        $filteroptions[] = new rb_filter_option(
+            'user',
             'positionid',
             get_string('participantscurrentposbasic', 'totara_reportbuilder'),
             'select',
@@ -3566,6 +3589,15 @@ abstract class rb_base_source {
             'positionpath',
             get_string('participantscurrentpos', 'totara_reportbuilder'),
             'hierarchy',
+            array(
+                'hierarchytype' => 'pos',
+            )
+        );
+        $filteroptions[] = new rb_filter_option(
+            'user',
+            'positionid2',
+            get_string('usersposmulti', 'totara_reportbuilder'),
+            'hierarchy_multi',
             array(
                 'hierarchytype' => 'pos',
             )
@@ -3650,7 +3682,6 @@ abstract class rb_base_source {
                 get_string('organisationframeworkdescription', 'totara_reportbuilder'),
                 'text'
         );
-
 
         return true;
     }
