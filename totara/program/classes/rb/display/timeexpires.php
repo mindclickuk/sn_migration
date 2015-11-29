@@ -64,6 +64,14 @@ class timeexpires extends \totara_reportbuilder\rb\display\base {
         } else if ($value < time()) {
             $days = get_string('overdue', 'totara_plan');
         }
+
+        if ($format !== 'html') {
+            // We use <br /> even though it's about to be replaced using to_plaintext()
+            // as new lines using "\n" simply get lost in that same function.
+            $out .= '<br />' . $days;
+            return parent::to_plaintext($out, true);
+        }
+
         if ($days != '') {
             // Can't use html_writer due to namespace issues
             $out .= '<br />' . $OUTPUT->error_text($days);
