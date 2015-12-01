@@ -1,4 +1,7 @@
 {
+    "name" : "totara/totaralms",
+    "description" : "Totara LMS is a fully supported Open Source learning platform specifically designed for the requirements of corporate, industry and vocational training.",
+    "license" : "GPL-3.0+",
     "repositories" : [
         {
             "type": "vcs",
