@@ -545,6 +545,9 @@ p.errormessage {
 .mform select {
     max-width: 250px;
 }
+.mform select[size] {
+    max-width: 100%;
+}
 
 /* Profileblock */
 
