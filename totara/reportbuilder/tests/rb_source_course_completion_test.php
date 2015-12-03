@@ -219,13 +219,13 @@ class totara_reportbuilder_rb_source_course_completion_testcase extends advanced
         $this->disable_caching($report->_id);
 
         require_once($CFG->dirroot . '/totara/reportbuilder/report_forms.php');
-        $mformsidebar = new report_builder_sidebar_search_form($report->get_current_url(),
+        $mformsidebar = new report_builder_sidebar_search_form(null,
             array('report' => $report, 'fields' => $report->get_sidebar_filters()));
 
         $this->enable_caching($report->_id);
 
         require_once($CFG->dirroot . '/totara/reportbuilder/report_forms.php');
-        $mformsidebar = new report_builder_sidebar_search_form($report->get_current_url(),
+        $mformsidebar = new report_builder_sidebar_search_form(null,
             array('report' => $report, 'fields' => $report->get_sidebar_filters()));
     }
 }
