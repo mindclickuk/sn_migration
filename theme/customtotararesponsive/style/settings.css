@@ -136,5 +136,9 @@ body, h1, h2, h3, h4, h5, h6, p, ul, ol, dl, input, textarea {
     color: [[setting:textcolor]];
 }
 
+header nav .container-fluid > h1 {
+    display: none;
+}
+
 /** Custom CSS defined via theme settings **/
 [[setting:customcss]]

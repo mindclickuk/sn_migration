@@ -49,6 +49,13 @@ function xsendfile($filepath) {
 
     $filepath = realpath($filepath);
 
+    $fulldirroot = realpath($CFG->dirroot);
+    if (strpos($filepath,$fulldirroot) === 0) {
+        $filepath = substr($filepath,strlen($fulldirroot));
+        header('Location: '.$filepath);
+        return true;
+    }
+
     $aliased = false;
     if (!empty($CFG->xsendfilealiases) and is_array($CFG->xsendfilealiases)) {
         foreach ($CFG->xsendfilealiases as $alias=>$dir) {
