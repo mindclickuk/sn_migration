@@ -92,7 +92,7 @@ $messageproviders = array (
     // Badge award notification to a badge creator (mostly cron-based).
     'badgecreatornotice' => array (
         'defaults' => array(
-            'email' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDOFF,
+            'email' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
         )
     )
 );
