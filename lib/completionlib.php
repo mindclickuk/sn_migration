@@ -1262,11 +1262,11 @@ class completion_info {
                     $data->timecompleted   = null;
 
                     // TOTARA - Check the criteria in case it should be complete.
-                    $coursemodule = $DB->get_record('course_modules' , array('id' => $cm->id));
+                    $coursemodule = $DB->get_record('course_modules' , array('id' => $othercm->id));
                     if ($coursemodule && $this->internal_get_state($coursemodule, $userid, $data) != COMPLETION_INCOMPLETE) {
                         // It isn't incomplete for some reason. Process it now, then re-get the new data.
                         $this->update_state($coursemodule, COMPLETION_UNKNOWN, $userid, $data);
-                        $newdata = $DB->get_record('course_modules_completion', array('coursemoduleid'=>$cm->id, 'userid'=>$userid));
+                        $newdata = $DB->get_record('course_modules_completion', array('coursemoduleid'=>$othercm->id, 'userid'=>$userid));
                         if (!empty($newdata)) {
                             $data = $newdata;
                         }
