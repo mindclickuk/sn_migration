@@ -407,6 +407,9 @@ class behat_hooks extends behat_base {
 
         list ($dir, $filename) = $this->get_faildump_filename($event, 'png');
         $this->saveScreenshot($filename, $dir);
+        // Totara: fix new file permissions!
+        global $CFG;
+        @chmod($dir . DIRECTORY_SEPARATOR . $filename, $CFG->filepermissions);
     }
 
     /**
@@ -421,6 +424,9 @@ class behat_hooks extends behat_base {
         $fh = fopen($dir . DIRECTORY_SEPARATOR . $filename, 'w');
         fwrite($fh, $this->getSession()->getPage()->getContent());
         fclose($fh);
+        // Totara: fix new file permissions!
+        global $CFG;
+        @chmod($dir . DIRECTORY_SEPARATOR . $filename, $CFG->filepermissions);
     }
 
     /**
