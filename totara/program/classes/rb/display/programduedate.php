@@ -50,10 +50,16 @@ class programduedate extends \totara_reportbuilder\rb\display\base {
             return array('date', $value, $dateformat);
         }
 
-        if ($format !== 'html') {
+        if ($format === 'csv') {
             return userdate($value, get_string('strfdateshortmonth', 'langconfig'));
         }
 
-        return prog_display_duedate($value, $extrafields->programid, $extrafields->userid);
+        $out = prog_display_duedate($value, $extrafields->programid, $extrafields->userid);
+
+        if ($format !== 'html') {
+            return parent::to_plaintext($out, true);
+        }
+
+        return $out;
     }
 }
