@@ -257,6 +257,8 @@ class sep_services {
     /**
      * Get the SSO user info.
      *
+     * NOTE: each ssotoken may be used only once with this method.
+     *
      * @param \stdClass $client
      * @param array $parameters
      * @return array JSend compatible result
@@ -320,6 +322,15 @@ class sep_services {
                 'message' => 'invalid user session',
             );
         }
+
+        // Prevent reuse of ssotoken in this method.
+        if ($ssosession->active) {
+            return array(
+                'status' => 'error',
+                'message' => 'reused ssotoken',
+            );
+        }
+        $DB->set_field('totara_connect_sso_sessions', 'active', 1, array('id' => $ssosession->id));
 
         // Add profile fields, prefs and format description.
         util::prepare_user_for_client($user);

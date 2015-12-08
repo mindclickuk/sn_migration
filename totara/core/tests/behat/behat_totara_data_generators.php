@@ -53,6 +53,20 @@ class behat_totara_data_generators extends behat_base {
      */
     protected static $componentelements = array(
         // NOTE: this could be dynamic, but it is not a problem for Totara.
+        'totara_core' => array(
+            'custom profile fields' => array(
+                'datagenerator' => 'custom_profile_field',
+                'required' => array('datatype'),
+            ),
+            'custom course fields' => array(
+                'datagenerator' => 'custom_course_field',
+                'required' => array('datatype'),
+            ),
+            'custom program fields' => array(
+                'datagenerator' => 'custom_program_field',
+                'required' => array('datatype'),
+            ),
+        ),
         'totara_program' => array(
             'programs' => array(
                 'datagenerator' => 'program',

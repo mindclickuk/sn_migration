@@ -353,6 +353,7 @@ $string['globalsettingsupdated'] = 'Global settings updated';
 $string['gotofacetofacesettings'] = 'To view this report go to a facetoface activity and use the \'Declared interest report\' link in the \'Facetoface administration\' admin menu.';
 $string['gradeandgradetocomplete'] = '{$a->grade}% ({$a->pass}% to complete)';
 $string['graph'] = 'Graph';
+$string['graphadvancedoptions'] = 'Advanced options';
 $string['graphcategory'] = 'Category';
 $string['graphlegend'] = 'Legend';
 $string['graphmaxrecords'] = 'Maximum number of used records';

@@ -874,7 +874,7 @@ class report_builder_edit_graph_form extends moodleform {
         $mform->disabledIf('stacked', 'type', 'eq', 'pie');
         $mform->disabledIf('stacked', 'type', 'eq', 'scatter');
 
-        $mform->addElement('header', 'advancedhdr', 'Advanced options');
+        $mform->addElement('header', 'advancedhdr', get_string('graphadvancedoptions', 'totara_reportbuilder'));
 
         $mform->addElement('text', 'maxrecords', get_string('graphmaxrecords', 'totara_reportbuilder'));
         $mform->setType('maxrecords', PARAM_INT);

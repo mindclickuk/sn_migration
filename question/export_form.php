@@ -38,32 +38,29 @@ require_once($CFG->libdir . '/formslib.php');
 class question_export_form extends moodleform {
 
     protected function definition() {
+        // TL-8065 - improved accessibility.
+        global $OUTPUT;
         $mform = $this->_form;
 
         $defaultcategory = $this->_customdata['defaultcategory'];
         $contexts = $this->_customdata['contexts'];
 
         // Choice of format, with help.
-        $mform->addElement('header', 'fileformat', get_string('fileformat', 'question'));
         $fileformatnames = get_import_export_formats('export');
         $radioarray = array();
-        $i = 0 ;
         foreach ($fileformatnames as $shortname => $fileformatname) {
-            $currentgrp1 = array();
-            $currentgrp1[] = $mform->createElement('radio', 'format', '', $fileformatname, $shortname);
-            $mform->addGroup($currentgrp1, "formathelp[{$i}]", '', array('<br />'), false);
-
+            $help = '';
             if (get_string_manager()->string_exists('pluginname_help', 'qformat_' . $shortname)) {
-                $mform->addHelpButton("formathelp[{$i}]", 'pluginname', 'qformat_' . $shortname);
+                $help = $OUTPUT->help_icon('pluginname', 'qformat_' . $shortname);
             }
-
-            $i++ ;
+            $radioelement = $mform->createElement('radio', 'format', '', $fileformatname . $help, $shortname);
+            $radioarray[] = $radioelement;
         }
-        $mform->addRule("formathelp[0]", null, 'required', null, 'client');
+        $mform->addGroup($radioarray, "requiredformat", get_string('fileformat', 'question'), array('<br/>'), false);
+
+        $mform->addRule("requiredformat", null, 'required', null, 'client');
 
         // Export options.
-        $mform->addElement('header', 'general', get_string('general', 'form'));
-
         $mform->addElement('questioncategory', 'category', get_string('exportcategory', 'question'), compact('contexts'));
         $mform->setDefault('category', $defaultcategory);
         $mform->addHelpButton('category', 'exportcategory', 'question');
@@ -71,7 +68,7 @@ class question_export_form extends moodleform {
         $categorygroup = array();
         $categorygroup[] = $mform->createElement('checkbox', 'cattofile', '', get_string('tofilecategory', 'question'));
         $categorygroup[] = $mform->createElement('checkbox', 'contexttofile', '', get_string('tofilecontext', 'question'));
-        $mform->addGroup($categorygroup, 'categorygroup', '', '', false);
+        $mform->addGroup($categorygroup, 'categorygroup', '', '<br/>', false);
         $mform->disabledIf('categorygroup', 'cattofile', 'notchecked');
         $mform->setDefault('cattofile', 1);
         $mform->setDefault('contexttofile', 1);

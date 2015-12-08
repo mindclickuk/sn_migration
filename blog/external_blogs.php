@@ -33,6 +33,10 @@ $PAGE->set_context(context_user::instance($USER->id));
 $PAGE->set_url(new moodle_url('/blog/external_blogs.php'));
 require_capability('moodle/blog:manageexternal', $context);
 
+if (empty($CFG->enableblogs) or empty($CFG->useexternalblogs) or $CFG->maxexternalblogsperuser <= 0) {
+    print_error('blogdisable', 'blog');
+}
+
 $delete = optional_param('delete', null, PARAM_INT);
 
 $strexternalblogs = get_string('externalblogs', 'blog');

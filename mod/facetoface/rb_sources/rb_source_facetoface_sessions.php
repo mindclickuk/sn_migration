@@ -308,8 +308,8 @@ class rb_source_facetoface_sessions extends rb_base_source {
                 $DB->sql_concat_join("' '", $usernamefieldscreator),
                 array(
                     'joins' => 'creator',
-                    'displayfunc' => 'link_f2f_actionedby',
-                    'extrafields' => array_merge(array('user_id' => 'creator.id'), $usernamefieldscreator),
+                    'displayfunc' => 'link_user',
+                    'extrafields' => array_merge(array('id' => 'creator.id'), $usernamefieldscreator),
                 )
             ),
             new rb_column_option(
@@ -384,8 +384,11 @@ class rb_source_facetoface_sessions extends rb_base_source {
                 'bookedby',
                 get_string('bookedby', 'rb_source_facetoface_sessions'),
                 $DB->sql_concat_join("' '", $usernamefieldsbooked),
-                array('joins' => 'bookedby', 'displayfunc' => 'link_f2f_bookedby',
-                     'extrafields' => array_merge(array('user_id' => 'bookedby.id')), $usernamefieldsbooked)
+                array(
+                    'joins' => 'bookedby',
+                    'displayfunc' => 'link_user',
+                    'extrafields' => array_merge(array('id' => 'bookedby.id'), $usernamefieldsbooked),
+                )
             ),
             new rb_column_option(
                 'room',
@@ -1034,21 +1037,9 @@ class rb_source_facetoface_sessions extends rb_base_source {
         }
     }
 
-    // Output the booking managers name (linked to their profile).
-    function rb_display_link_f2f_bookedby($name, $row) {
-        $user = fullname($row);
-        return $this->rb_display_link_user($user, $row, false);
-    }
-
-    // Output the actioning users name (linked to their profile).
-    function rb_display_link_f2f_actionedby($name, $row) {
-        $user = fullname($row);
-        return $this->rb_display_link_user($user, $row, false);
-    }
-
     // Override user display function to show 'Reserved' for reserved spaces.
     function rb_display_link_user($user, $row, $isexport = false) {
-        if ($row->id) {
+        if (!empty($row->id)) {
             return parent::rb_display_link_user($user, $row, $isexport);
         }
         return get_string('reserved', 'rb_source_facetoface_sessions');
@@ -1056,7 +1047,7 @@ class rb_source_facetoface_sessions extends rb_base_source {
 
     // Override user display function to show 'Reserved' for reserved spaces.
     function rb_display_link_user_icon($user, $row, $isexport = false) {
-        if ($row->id) {
+        if (!empty($row->id)) {
             return parent::rb_display_link_user_icon($user, $row, $isexport);
         }
         return get_string('reserved', 'rb_source_facetoface_sessions');

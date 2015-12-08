@@ -32,12 +32,12 @@ class rb_findprograms_embedded extends rb_base_embedded {
             array(
                 'type' => 'prog',
                 'value' => 'proglinkicon',
-                'heading' => 'Program Name',
+                'heading' => get_string('programname', 'totara_program'),
             ),
             array(
                 'type' => 'course_category',
                 'value' => 'namelink',
-                'heading' => 'Category',
+                'heading' => get_string('category', 'totara_program'),
             ),
         );
 

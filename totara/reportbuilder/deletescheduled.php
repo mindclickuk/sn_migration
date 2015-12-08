@@ -37,32 +37,32 @@ $PAGE->set_context(context_user::instance($USER->id));
 $PAGE->set_url('/totara/reportbuilder/deletescheduled.php', array('id' => $id));
 $PAGE->set_totara_menu_selected('myreports');
 
-if (!$report = $DB->get_record('report_builder_schedule', array('id' => $id))) {
+if (!$scheduledreport = $DB->get_record('report_builder_schedule', array('id' => $id))) {
     print_error('error:invalidreportscheduleid', 'totara_reportbuilder');
 }
 
-if (!reportbuilder::is_capable($report->reportid)) {
+if (!reportbuilder::is_capable($scheduledreport->reportid)) {
     print_error('nopermission', 'totara_reportbuilder');
 }
-if ($report->userid != $USER->id) {
+if ($scheduledreport->userid != $USER->id) {
     require_capability('totara/reportbuilder:managereports', context_system::instance());
 }
 
-$reportname = $DB->get_field('report_builder', 'fullname', array('id' => $report->reportid));
+$reportname = $DB->get_field('report_builder', 'fullname', array('id' => $scheduledreport->reportid));
 
 $returnurl = new moodle_url('/my/reports.php');
-$deleteurl = new moodle_url('/totara/reportbuilder/deletescheduled.php', array('id' => $report->id, 'confirm' => '1', 'sesskey' => $USER->sesskey));
+$deleteurl = new moodle_url('/totara/reportbuilder/deletescheduled.php', array('id' => $scheduledreport->id, 'confirm' => '1', 'sesskey' => $USER->sesskey));
 
 if ($confirm == 1) {
     if (!confirm_sesskey()) {
         print_error('confirmsesskeybad', 'error');
     } else {
-        $select = "scheduleid IN (SELECT s.id FROM {report_builder_schedule} s WHERE s.reportid = ?)";
-        $DB->delete_records_select('report_builder_schedule_email_audience', $select, array($report->id));
-        $DB->delete_records_select('report_builder_schedule_email_systemuser', $select, array($report->id));
-        $DB->delete_records_select('report_builder_schedule_email_external', $select, array($report->id));
-        $DB->delete_records('report_builder_schedule', array('id' => $report->id));
-        $report = new reportbuilder($id);
+        $select = "scheduleid = ?";
+        $DB->delete_records_select('report_builder_schedule_email_audience', $select, array($scheduledreport->id));
+        $DB->delete_records_select('report_builder_schedule_email_systemuser', $select, array($scheduledreport->id));
+        $DB->delete_records_select('report_builder_schedule_email_external', $select, array($scheduledreport->id));
+        $DB->delete_records('report_builder_schedule', array('id' => $scheduledreport->id));
+        $report = new reportbuilder($scheduledreport->reportid);
         \totara_reportbuilder\event\report_updated::create_from_report($report, 'scheduled')->trigger();
         totara_set_notification(get_string('deletedscheduledreport', 'totara_reportbuilder', format_string($reportname)),
                                 $returnurl, array('class' => 'notifysuccess'));

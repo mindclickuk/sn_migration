@@ -66,7 +66,6 @@ M.totara_core = M.totara_core || {
             icon = ['t/calendar','totara_core'];
         }
 
-        var direction = (M.util.get_string('thisdirection', 'langconfig') === 'rtl');
         $(selector).datepicker(
             {
                 dateFormat: dateformat,
@@ -74,7 +73,7 @@ M.totara_core = M.totara_core || {
                 buttonImage: M.util.image_url(icon[0], icon[1]),
                 buttonImageOnly: true,
                 constrainInput: true,
-                isRTL: direction
+                isRTL: right_to_left()
             }
         );
     }

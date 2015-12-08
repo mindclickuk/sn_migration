@@ -37,6 +37,7 @@
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="sid" TYPE="char" LENGTH="128" NOTNULL="true" SEQUENCE="false" COMMENT="Session id of the user session on the TC server"/>
         <FIELD NAME="ssotoken" TYPE="char" LENGTH="64" NOTNULL="true" SEQUENCE="false" COMMENT="Token identifying SSO session on TC client"/>
+        <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Set to 1 after client fetches user data via get_sso_user"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>

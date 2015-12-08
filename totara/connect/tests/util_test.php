@@ -472,6 +472,7 @@ class totara_connect_util_testcase extends advanced_testcase {
         $this->assertSame($user->id, $session->userid);
         $this->assertSame('', $session->sid); // No session in CLI.
         $this->assertSame(40, strlen($session->ssotoken));
+        $this->assertSame('0', $session->active);
         $this->assertTimeCurrent($session->timecreated);
 
         // User not member of the restriction cohort.

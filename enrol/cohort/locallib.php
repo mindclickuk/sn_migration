@@ -273,8 +273,7 @@ function enrol_cohort_sync(progress_trace $trace, $courseid = NULL, $cohortid = 
     $ignoreabort = ignore_user_abort(true);
     $now = time();
     $maxidsql = "SELECT MAX(ue.id)
-                   FROM {user_enrolments} ue
-                   JOIN {enrol} e ON (e.enrol = 'cohort')";
+                   FROM {user_enrolments} ue";
     $prevmaxid = (int)$DB->get_field_sql($maxidsql);
     // Insert enrolment records for all new users in cohorts and newly synced cohorts.
     $sql = "INSERT INTO {user_enrolments} (enrolid, status, userid, timestart, timeend, modifierid, timecreated, timemodified)

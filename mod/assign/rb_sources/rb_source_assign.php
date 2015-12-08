@@ -81,7 +81,7 @@ class rb_source_assign extends rb_base_source {
                 'assign_grades',
                 'LEFT',
                 '{assign_grades}',
-                'assign.id = assign_grades.assignment AND base.userid = assign_grades.userid',
+                'assign.id = assign_grades.assignment AND base.userid = assign_grades.userid AND base.attemptnumber = assign_grades.attemptnumber',
                 REPORT_BUILDER_RELATION_ONE_TO_ONE,
                 'assign'
             ),

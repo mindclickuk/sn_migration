@@ -51,5 +51,20 @@ function xmldb_totara_connect_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2015100202, 'totara', 'connect');
     }
 
+    if ($oldversion < 2015100203) {
+
+        // Define field active to be added to totara_connect_sso_sessions.
+        $table = new xmldb_table('totara_connect_sso_sessions');
+        $field = new xmldb_field('active', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'ssotoken');
+
+        // Conditionally launch add field active.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Connect savepoint reached.
+        upgrade_plugin_savepoint(true, 2015100203, 'totara', 'connect');
+    }
+
     return true;
 }

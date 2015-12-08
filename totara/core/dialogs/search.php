@@ -572,7 +572,11 @@ if (strlen($query)) {
                     $username->email = $result->email;
                     $item->fullname = get_string('assignindividual', 'totara_program', $username);
                 } else {
-                    $item->fullname = format_string($result->fullname);
+                    if (isset($result->fullname)) {
+                        $item->fullname = format_string($result->fullname);
+                    } else {
+                        $item->fullname = format_string(fullname($result));
+                    }
                 }
 
                 if (method_exists($this, 'search_get_item_hover_data')) {

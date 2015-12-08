@@ -38,10 +38,11 @@ Feature: Verify appraisal data generators.
     And the following "appraisals" exist in "totara_appraisal" plugin:
       | name        |
       | Appraisal 1 |
+    # NOTE: all behat dates are in Perth timezone by default - 1 second before the end of day!
     And the following "stages" exist in "totara_appraisal" plugin:
-      | appraisal   | name      | timedue        |
-      | Appraisal 1 | Stage 1-1 | 2082672000     |
-      | Appraisal 1 | Stage 1-2 | 1 January 2036 |
+      | appraisal   | name      | timedue                |
+      | Appraisal 1 | Stage 1-1 | 2082729599             |
+      | Appraisal 1 | Stage 1-2 | 1 January 2036 23:59:59|
     And the following "pages" exist in "totara_appraisal" plugin:
       | appraisal   | stage     | name       |
       | Appraisal 1 | Stage 1-1 | Page 1-1-1 |
@@ -78,8 +79,8 @@ Feature: Verify appraisal data generators.
 
     When I follow "Content"
     Then I should see "Stage 1-1"
-    And I should see "1 Jan 2036"
     And I should see "31 Dec 2035"
+    And I should see "1 Jan 2036"
     And I should see "Page 1-1-1"
     And I should see "Page 1-1-2"
     And I should see "Question 1-1-1-1"

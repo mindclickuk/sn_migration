@@ -45,6 +45,8 @@ $action            = optional_param('action', 'attendees', PARAM_ALPHA);
 $onlycontent        = optional_param('onlycontent', false, PARAM_BOOL);
 // export download
 $download = optional_param('download', '', PARAM_ALPHA);
+// If approval requests have been updated, show a success message.
+$approved = optional_param('approved', 0, PARAM_INT);
 
 // Load data
 if (!$session = facetoface_get_session($s)) {
@@ -181,6 +183,13 @@ if ($canapproveanyrequest || !empty($staff)) {
             $available_actions[] = 'approvalrequired';
         }
     }
+}
+
+// If no allowed actions so far, check if this was manager who has just approved staff requests (approved == 1).
+// If so, we will be loading the 'approval required' page with a success message.
+if (empty($allowed_actions) && ($approved == 1) && !empty($staff)) {
+    $allowed_actions[] = 'approvalrequired';
+    $available_actions[] = 'approvalrequired';
 }
 
 // Check if we are NOT already showing attendees and the user has staff.
@@ -349,6 +358,9 @@ if ($form = data_submitted()) {
     // Approve requests
     if ($action == 'approvalrequired' && !empty($form->requests)) {
         facetoface_approve_requests($form);
+
+        $return->params(array('action' => 'approvalrequired', 'approved' => 1));
+
         redirect($return);
         die();
     }
@@ -938,6 +950,11 @@ echo html_writer::link($url, get_string('goback', 'facetoface')) . html_writer::
  * Print unapproved requests (if user able to view)
  */
 if ($action == 'approvalrequired') {
+
+    if ($approved == 1) {
+        echo $OUTPUT->notification(get_string('attendancerequestsupdated', 'facetoface'), 'notifysuccess');
+    }
+
     echo html_writer::empty_tag('br', array('id' => 'unapproved'));
     $numattendees = facetoface_get_num_attendees($session->id);
     $numwaiting = count($requests);
@@ -1016,8 +1033,15 @@ if ($action == 'approvalrequired') {
         $table->data[] = $data;
     }
 
-    echo html_writer::table($table);
-    echo html_writer::tag('p', html_writer::empty_tag('input', array('type' => 'submit', 'value' => get_string('updaterequests', 'facetoface'))));
+    if (!empty($table->data)) {
+        echo html_writer::table($table);
+        echo html_writer::tag('p', html_writer::empty_tag('input', array('type' => 'submit', 'value' => get_string('updaterequests', 'facetoface'))));
+    } else {
+        echo html_writer::start_span();
+        echo html_writer::tag('p', get_string('nopendingapprovals', 'facetoface'));
+        echo html_writer::end_span();
+    }
+
     echo html_writer::end_tag('form');
 }
 

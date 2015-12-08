@@ -177,7 +177,7 @@ if ($options['install']) {
 
         $runtestscommand .= ' --config ' . behat_config_manager::get_behat_cli_config_filepath();
         mtrace("Acceptance tests environment enabled on $CFG->behat_wwwroot, to run the tests use: " . PHP_EOL .
-            $runtestscommand);
+            ' ' . $runtestscommand); // Totara: keep the command nicely indented!!!
     }
 
 } else if ($options['disable']) {

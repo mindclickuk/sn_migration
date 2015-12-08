@@ -34,6 +34,10 @@ require_login();
 $context = context_system::instance();
 require_capability('moodle/blog:manageexternal', $context);
 
+if (empty($CFG->enableblogs) or empty($CFG->useexternalblogs) or $CFG->maxexternalblogsperuser <= 0) {
+    print_error('blogdisable', 'blog');
+}
+
 // TODO redirect if $CFG->useexternalblogs is off,
 //                  $CFG->maxexternalblogsperuser == 0,
 //                  or if user doesn't have caps to manage external blogs.

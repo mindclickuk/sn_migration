@@ -74,6 +74,9 @@ class graph {
             'line_stroke_width' => 2,
             'repeated_keys' => 'accept', // Bad luck, we cannot prevent repeated values.
             'label_font_size' => 14,
+            // Custom Totara hacks.
+            'label_shorten' => 40,
+            'legend_shorten' => 80,
     );
 
         $this->processedcount = 0;
@@ -394,6 +397,8 @@ class graph {
             }
         }
 
+        $settings = $this->shorten_legend($settings);
+
         return $this->apply_custom_colours($settings);
     }
 
@@ -415,15 +420,62 @@ class graph {
         return $data;
     }
 
+    /**
+     * Shorten the label texts in graph.
+     *
+     * @param array $values
+     * @param array $settings
+     * @return array modified $values
+     */
+    protected function shorten_labels(array $values, array $settings) {
+        $labelshorten = (int)$settings['label_shorten'];
+
+        if ($labelshorten <= 0) {
+            return $values;
+        }
+
+        $legendkey = $settings['structure']['key'];
+
+        foreach ($values as $k => $v) {
+            if (!isset($v[$legendkey])) {
+                continue;
+            }
+            $values[$k][$legendkey] = shorten_text($v[$legendkey], $labelshorten);
+        }
+
+        return $values;
+    }
+
+    /**
+     * Shorten the legend entries.
+     *
+     * @param array $settings
+     * @return array modified $settings
+     */
+    protected function shorten_legend(array $settings) {
+        $legendshorten = (int)$settings['legend_shorten'];
+
+        if ($legendshorten <= 0 or empty($settings['legend_entries'])) {
+            return $settings;
+        }
+
+        foreach ($settings['legend_entries'] as $k => $v) {
+            $settings['legend_entries'][$k] = shorten_text($v, $legendshorten);
+        }
+
+        return $settings;
+    }
+
     public function fetch_svg() {
         $this->init_svggraph();
         if (!$this->svggraphtype) {
             // Nothing to do.
             return null;
         }
-        $svggraph = new \SVGGraph(1000, 400, $this->get_final_settings());
+        $settings = $this->get_final_settings();
+        $svggraph = new \SVGGraph(1000, 400, $settings);
         $svggraph->Colours($this->svggraphcolours);
-        $svggraph->Values($this->values);
+        $svggraph->Values($this->shorten_labels($this->values, $settings));
         $data = $svggraph->Fetch($this->svggraphtype, false, false);
         $data = $this->fix_svg_rtl($data);
         return $data;
@@ -448,7 +500,7 @@ class graph {
 
         $svggraph = new \SVGGraph(400, 400, $settings);
         $svggraph->Colours($this->svggraphcolours);
-        $svggraph->Values($this->values);
+        $svggraph->Values($this->shorten_labels($this->values, $settings));
         $data = $svggraph->Fetch($this->svggraphtype, false, false);
         $data = $this->fix_svg_rtl($data);
         return $data;
@@ -467,9 +519,10 @@ class graph {
             // Nothing to do.
             return null;
         }
-        $svggraph = new \SVGGraph($w, $h, $this->get_final_settings());
+        $settings = $this->get_final_settings();
+        $svggraph = new \SVGGraph($w, $h, $settings);
         $svggraph->Colours($this->svggraphcolours);
-        $svggraph->Values($this->values);
+        $svggraph->Values($this->shorten_labels($this->values, $settings));
         $data = $svggraph->Fetch($this->svggraphtype, false, false);
         $data = $this->fix_svg_rtl($data);
         return $data;

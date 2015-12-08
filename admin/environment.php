@@ -32,6 +32,9 @@ require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->libdir.'/environmentlib.php');
 require_once($CFG->libdir.'/componentlib.class.php');
 
+// Totara: this must be included first so that the $version variable does not get overridden.
+require($CFG->dirroot.'/version.php');
+
 // Parameters
 $action  = optional_param('action', '', PARAM_ALPHANUMEXT);
 $version = optional_param('version', '', PARAM_FILE); //
@@ -76,7 +79,6 @@ if ($action == 'updatecomponent' && confirm_sesskey()) {
 }
 
 // Get current Totara version
-require($CFG->dirroot.'/version.php');
 $current_version = $TOTARA->release;
 
 // Calculate list of versions

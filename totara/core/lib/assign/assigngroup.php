@@ -32,7 +32,7 @@ require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->dirroot.'/totara/core/lib/assign/lib.php');
 
 $module = required_param('module', PARAM_COMPONENT);
-if ($module === '') {
+if ($module === '' or $module === 'goal' or $module === 'appraisal' or $module === 'feedback360') {
     throw new invalid_parameter_exception("Invalid module name");
 }
 
@@ -40,7 +40,19 @@ $grouptype = required_param('grouptype', PARAM_ALPHA);
 $itemid = required_param('itemid', PARAM_INT);
 $add = optional_param('add', false, PARAM_BOOL);
 
-$urlparams = array('module' => $module, 'grouptype' => $grouptype, 'itemid' => $itemid, 'add' => $add);
+require_login();
+require_sesskey();
+
+$sitecontext = context_system::instance();
+// Totara plugins need to implement this capability otherwise they have to do heir own assign stuff, see goals for example.
+require_capability("totara/{$module}:assign{$module}togroup", $sitecontext);
+
+$features = totara_advanced_features_list();
+if (in_array($module, $features)) {
+    if (totara_feature_disabled($module)) {
+        die;
+    }
+}
 
 // Try to find the module class library.
 $assignclassname = "totara_assign_{$module}";
@@ -48,7 +60,7 @@ require_once($CFG->dirroot."/totara/{$module}/lib.php");
 $moduleclass = new $module($itemid);
 $assignclass = new $assignclassname($module, $moduleclass);
 
-$PAGE->set_context(context_system::instance());
+$PAGE->set_context($sitecontext);
 
 // Determine if this assignment is allowed, instantiate the appropriate group class.
 $grouptypes = $assignclassname::get_assignable_grouptypes();
@@ -61,6 +73,7 @@ if (!in_array($grouptype, $grouptypes)) {
 $grouptypeobj = $assignclass->load_grouptype($grouptype);
 
 // Handle new assignments.
+$urlparams = array('module' => $module, 'grouptype' => $grouptype, 'itemid' => $itemid, 'add' => $add);
 if ($add) {
     $out = '';
     // Is there any valid data?
