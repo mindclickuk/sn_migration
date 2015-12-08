@@ -3,6 +3,28 @@
 
 Totara LMS Changelog
 
+Release 2.9.1.1 (9th December 2015):
+====================================
+
+
+Bug fixes:
+
+    TL-8096        Fixed course module completion calculation
+
+                   This fixes a regression introduced by TL-6981 in 2.9.1, 2.7.9, 2.6.26, and
+                   2.5.33 in which the calculation of course module completion would lead to
+                   all activities being marked complete incorrectly for a user.
+                   The problem occurs when the user completes the first activity in the
+                   course. It occurs if the user manually marks themselves complete, achieves
+                   the completion criteria (with the exception of "Student must view this
+                   activity to complete it"), or is marked complete by a trainer. The user
+                   must then log out and log back in again in order to see the problem.
+                   The problem will not occur if it is not the first activity in the course.
+                   When this occurs all activities in the course will be marked complete,
+                   regardless of which section or order they are within the course and
+                   regardless of whether they are required for course completion or not.
+
+
 Release 2.9.1 (16th November 2015):
 ==================================================
 
