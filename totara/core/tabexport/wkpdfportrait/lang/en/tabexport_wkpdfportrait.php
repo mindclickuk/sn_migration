@@ -23,5 +23,5 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['optionname'] = 'PDF (Portrait)';
-$string['pluginname'] = 'PDF (Portrait) export - wkhtml2pdf';
+$string['optionname'] = 'PDF portrait (wkhtml2pdf)';
+$string['pluginname'] = 'PDF portrait export (wkhtml2pdf)';

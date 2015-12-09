@@ -23,5 +23,5 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['optionname'] = 'PDF (Portrait)';
-$string['pluginname'] = 'PDF (Portrait) export';
+$string['optionname'] = 'PDF portrait';
+$string['pluginname'] = 'PDF portrait export';
