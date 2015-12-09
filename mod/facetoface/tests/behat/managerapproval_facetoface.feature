@@ -125,6 +125,7 @@ Feature: Manager approval
     And I select to approve "Sam1 Student1"
     And I select to approve "Sam2 Student2"
     Then I press "Update requests"
+    And I follow "Attendees"
     And I should see "This session is overbooked (2 / 1)"
     And I should see "Sam1 Student1" in the "table.mod-facetoface-attendees" "css_element"
     And I should see "Sam2 Student2" in the "table.mod-facetoface-attendees" "css_element"
