@@ -38,8 +38,8 @@ class cohort_rule_sqlhandler_suspended_user_account extends cohort_rule_sqlhandl
     public function get_sql_snippet() {
         $sqlhandler = new stdClass();
         $suspended = array_pop($this->listofvalues);
-        $sqlhandler->sql = "u.suspended = :suspended";
-        $sqlhandler->params = array('suspended' => $suspended);
+        $sqlhandler->sql = "u.suspended = :suspended{$this->ruleid}";
+        $sqlhandler->params = array("suspended{$this->ruleid}" => $suspended);
         return $sqlhandler;
     }
 }

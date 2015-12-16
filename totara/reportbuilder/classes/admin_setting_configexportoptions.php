@@ -58,7 +58,14 @@ class totara_reportbuilder_admin_setting_configexportoptions extends admin_setti
             return true;
         }
 
-        $this->choices = \totara_core\tabexport_writer::get_export_options();
+        $this->choices = \totara_core\tabexport_writer::get_export_classes();
+        foreach ($this->choices as $type => $class) {
+            // Different plugins may use the same option name, use plugin name here instead.
+            $this->choices[$type] = get_string('pluginname', 'tabexport_' . $type);
+            if (!$class::is_ready()) {
+                $this->choices[$type] = get_string('plugindisabled', 'core_plugin') . ': ' . $this->choices[$type];
+            }
+        }
 
         // Fusion is a special Reportbuilder hack.
         $this->choices['fusion'] = new lang_string('exportfusion', 'totara_reportbuilder');

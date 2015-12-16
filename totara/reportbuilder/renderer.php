@@ -546,13 +546,22 @@ class totara_reportbuilder_renderer extends plugin_renderer_base {
      * @return No return value but prints export select form
      */
     public function export_select($report, $sid = 0) {
-        global $CFG;
+        global $CFG, $PAGE;
         if ($report instanceof reportbuilder) {
             $id = $report->_id;
             $url = $report->get_current_url();
         } else {
             $id = $report;
-            $url = qualified_me();
+            if ($PAGE->has_set_url()) {
+                $url = $PAGE->url;
+            } else {
+                $url = new moodle_url(qualified_me());
+                foreach ($url->params() as $name => $value) {
+                    if (in_array($name, array('spage', 'ssort', 'sid', 'clearfilters'))) {
+                        $url->remove_params($name);
+                    }
+                }
+            }
         }
         require_once($CFG->dirroot . '/totara/reportbuilder/export_form.php');
         $export = new report_builder_export_form($url, compact('id', 'sid'));

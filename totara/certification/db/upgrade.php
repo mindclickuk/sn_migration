@@ -219,5 +219,30 @@ function xmldb_totara_certification_upgrade($oldversion) {
         totara_upgrade_mod_savepoint(true, 2015080500, 'totara_certification');
     }
 
+    // TL-7842 Repair completion records affected by bug fixed in TL-6979. F2F records missing archive flag do NOT
+    // need to be repaired because this fix will cause the window open code to be run again, causing the archive
+    // flag to be set this time.
+    if ($oldversion < 2015100201) {
+        $sql = "UPDATE {certif_completion}
+                   SET renewalstatus = :renewalstatusnotdue
+                 WHERE status = :certstatuscompleted
+                   AND certifpath = :certifpathrecert
+                   AND EXISTS (SELECT pc.id
+                                 FROM {prog_completion} pc
+                                 JOIN {prog} prog ON pc.programid = prog.id
+                                WHERE pc.coursesetid = 0
+                                  AND pc.status = :progstatuscomplete
+                                  AND pc.userid = {certif_completion}.userid
+                                  AND prog.certifid = {certif_completion}.certifid)";
+        $params = array('renewalstatusnotdue' => CERTIFRENEWALSTATUS_NOTDUE,
+                        'certstatuscompleted' => CERTIFSTATUS_COMPLETED,
+                        'certifpathrecert'    => CERTIFPATH_RECERT,
+                        'progstatuscomplete'  => STATUS_PROGRAM_COMPLETE);
+        $DB->execute($sql, $params);
+
+        // Savepoint reached.
+        totara_upgrade_mod_savepoint(true, 2015100201, 'totara_certification');
+    }
+
     return true;
 }

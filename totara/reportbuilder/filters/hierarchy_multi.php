@@ -77,7 +77,7 @@ class rb_filter_hierarchy_multi extends rb_filter_type {
         $mform->addElement('static', $this->name.'_list', $label, $content);
 
         if ($advanced) {
-            $mform->setAdvanced($this->name.'_grp');
+            $mform->setAdvanced($this->name.'_list');
         }
 
         $mform->addElement('hidden', $this->name);

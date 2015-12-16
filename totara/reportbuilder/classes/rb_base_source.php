@@ -2116,10 +2116,11 @@ abstract class rb_base_source {
                 'addtypetoheading' => $addtypetoheading
             )
         );
-        // Only include this column if email is among fields allowed
-        // by showuseridentity setting.
-        if (!empty($CFG->showuseridentity) &&
-            in_array('email', explode(',', $CFG->showuseridentity))) {
+        // Only include this column if email is among fields allowed by showuseridentity setting or
+        // if the current user has the 'moodle/site:config' capability.
+        $canview = !empty($CFG->showuseridentity) && in_array('email', explode(',', $CFG->showuseridentity));
+        $canview |= has_capability('moodle/site:config', context_system::instance());
+        if ($canview) {
             $columnoptions[] = new rb_column_option(
                 $groupname,
                 'emailunobscured',
@@ -2298,9 +2299,11 @@ abstract class rb_base_source {
             'city' => get_string('usercity', 'totara_reportbuilder'),
             'email' => get_string('useremail', 'totara_reportbuilder'),
         );
-        // Only include this filter if email is among fields allowed
-        // by showuseridentity setting.
-        if (!empty($CFG->showuseridentity) && in_array('email', explode(',', $CFG->showuseridentity))) {
+        // Only include this filter if email is among fields allowed by showuseridentity setting or
+        // if the current user has the 'moodle/site:config' capability.
+        $canview = !empty($CFG->showuseridentity) && in_array('email', explode(',', $CFG->showuseridentity));
+        $canview |= has_capability('moodle/site:config', context_system::instance());
+        if ($canview) {
             $fields['emailunobscured'] = get_string('useremailunobscured', 'totara_reportbuilder');
         }
 
@@ -2731,6 +2734,12 @@ abstract class rb_base_source {
                 'attributes' => rb_filter_option::select_width_limiter(),
             )
         );
+        $filteroptions[] = new rb_filter_option(
+            'course',
+            'id',
+            get_string('coursemultiitem', 'totara_reportbuilder'),
+            'course_multi'
+        );
         return true;
     }
 
@@ -2810,7 +2819,7 @@ abstract class rb_base_source {
             'prog',
             'summary',
             get_string('programsummary', $langfile),
-            $DB->sql_compare_text("$join.summary", 1024),
+            "$join.summary",
             array(
                 'joins' => $join,
                 'displayfunc' => 'tinymce_textarea',
@@ -3258,6 +3267,13 @@ abstract class rb_base_source {
         );
         $columnoptions[] = new rb_column_option(
             'user',
+            'organisationid2',
+            get_string('usersorgid', 'totara_reportbuilder'),
+            "$posassign.organisationid",
+            array('joins' => $posassign, 'selectable' => false)
+        );
+        $columnoptions[] = new rb_column_option(
+            'user',
             'organisationidnumber',
             get_string('usersorgidnumber', 'totara_reportbuilder'),
             "$org.idnumber",
@@ -3303,6 +3319,13 @@ abstract class rb_base_source {
         $columnoptions[] = new rb_column_option(
             'user',
             'positionid',
+            get_string('usersposid', 'totara_reportbuilder'),
+            "$posassign.positionid",
+            array('joins' => $posassign, 'selectable' => false)
+        );
+        $columnoptions[] = new rb_column_option(
+            'user',
+            'positionid2',
             get_string('usersposid', 'totara_reportbuilder'),
             "$posassign.positionid",
             array('joins' => $posassign, 'selectable' => false)
@@ -3544,6 +3567,15 @@ abstract class rb_base_source {
         );
         $filteroptions[] = new rb_filter_option(
             'user',
+            'organisationid2',
+            get_string('usersorgmulti', 'totara_reportbuilder'),
+            'hierarchy_multi',
+            array(
+                'hierarchytype' => 'org',
+            )
+        );
+        $filteroptions[] = new rb_filter_option(
+            'user',
             'positionid',
             get_string('participantscurrentposbasic', 'totara_reportbuilder'),
             'select',
@@ -3557,6 +3589,15 @@ abstract class rb_base_source {
             'positionpath',
             get_string('participantscurrentpos', 'totara_reportbuilder'),
             'hierarchy',
+            array(
+                'hierarchytype' => 'pos',
+            )
+        );
+        $filteroptions[] = new rb_filter_option(
+            'user',
+            'positionid2',
+            get_string('usersposmulti', 'totara_reportbuilder'),
+            'hierarchy_multi',
             array(
                 'hierarchytype' => 'pos',
             )
@@ -3641,7 +3682,6 @@ abstract class rb_base_source {
                 get_string('organisationframeworkdescription', 'totara_reportbuilder'),
                 'text'
         );
-
 
         return true;
     }
@@ -3861,6 +3901,21 @@ abstract class rb_base_source {
                     break;
 
                 case 'menu':
+                    $default = $record->defaultdata;
+                    if ($default !== '' and $default !== null) {
+                        // Note: there is no safe way to inject the default value into the query, use extra join instead.
+                        $fieldjoin = $joinname . '_fielddefault';
+                        $joinlist[] = new rb_join(
+                            $fieldjoin,
+                            'INNER',
+                            "{{$fieldtable}}",
+                            "{$fieldjoin}.id = {$id}",
+                            REPORT_BUILDER_RELATION_MANY_TO_ONE
+                        );
+                        $columnsql = "COALESCE({$columnsql}, {$fieldjoin}.defaultdata)";
+                        $column_options['joins'] = (array)$column_options['joins'];
+                        $column_options['joins'][] = $fieldjoin;
+                    }
                     $filtertype = 'menuofchoices';
                     $filter_options['selectchoices'] = $this->list_to_array($record->param1,"\n");
                     $filter_options['simplemode'] = true;
@@ -3891,6 +3946,21 @@ abstract class rb_base_source {
                     break;
 
                 case 'text':
+                    $default = $record->defaultdata;
+                    if ($default !== '' and $default !== null) {
+                        // Note: there is no safe way to inject the default value into the query, use extra join instead.
+                        $fieldjoin = $joinname . '_fielddefault';
+                        $joinlist[] = new rb_join(
+                            $fieldjoin,
+                            'INNER',
+                            "{{$fieldtable}}",
+                            "{$fieldjoin}.id = {$id}",
+                            REPORT_BUILDER_RELATION_MANY_TO_ONE
+                        );
+                        $columnsql = "COALESCE({$columnsql}, {$fieldjoin}.defaultdata)";
+                        $column_options['joins'] = (array)$column_options['joins'];
+                        $column_options['joins'][] = $fieldjoin;
+                    }
                     $column_options['dbdatatype'] = 'text';
                     $column_options['outputformat'] = 'text';
                     break;
@@ -4219,10 +4289,11 @@ abstract class rb_base_source {
                 'outputformat' => 'text'
             )
         );
-        // Only include this column if email is among fields allowed
-        // by showuseridentity setting.
-        if (!empty($CFG->showuseridentity) &&
-            in_array('email', explode(',', $CFG->showuseridentity))) {
+        // Only include this column if email is among fields allowed by showuseridentity setting or
+        // if the current user has the 'moodle/site:config' capability.
+        $canview = !empty($CFG->showuseridentity) && in_array('email', explode(',', $CFG->showuseridentity));
+        $canview |= has_capability('moodle/site:config', context_system::instance());
+        if ($canview) {
             $columnoptions[] = new rb_column_option(
                 'user',
                 'manageremailunobscured',
@@ -4277,9 +4348,11 @@ abstract class rb_base_source {
             get_string('usersmanageremail', 'totara_reportbuilder'),
             'text'
         );
-        // Only include this filter if email is among fields allowed
-        // by showuseridentity setting.
-        if (!empty($CFG->showuseridentity) && in_array('email', explode(',', $CFG->showuseridentity))) {
+        // Only include this filter if email is among fields allowed by showuseridentity setting or
+        // if the current user has the 'moodle/site:config' capability.
+        $canview = !empty($CFG->showuseridentity) && in_array('email', explode(',', $CFG->showuseridentity));
+        $canview |= has_capability('moodle/site:config', context_system::instance());
+        if ($canview) {
             $filteroptions[] = new rb_filter_option(
                 'user',
                 'manageremailunobscured',

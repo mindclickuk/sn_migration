@@ -258,6 +258,11 @@ class totara_sync_element_user extends totara_sync_element {
                             }
                         }
                     } catch (Exception $e) {
+                        // We don't want this exception to stop processing so we will continue.
+                        // The code may have started a transaction. If it did then roll back the transaction.
+                        if ($DB->is_transaction_started()) {
+                            $DB->force_transaction_rollback();
+                        }
                         $this->addlog(get_string('cannotdeleteuserx', 'tool_totara_sync', $user->idnumber) . ': ' .
                             $e->getMessage(), 'warn', 'deleteuser');
                         $problemswhileapplying = true;
@@ -351,6 +356,11 @@ class totara_sync_element_user extends totara_sync_element {
                     $this->create_user($suser);
                     $this->addlog(get_string('createduserx', 'tool_totara_sync', $suser->idnumber), 'info', 'createuser');
                 } catch (Exception $e) {
+                    // We don't want this exception to stop processing so we will continue.
+                    // The code may have started a transaction. If it did then roll back the transaction.
+                    if ($DB->is_transaction_started()) {
+                        $DB->force_transaction_rollback();
+                    }
                     $this->addlog(get_string('cannotcreateuserx', 'tool_totara_sync', $suser->idnumber) . ': ' .
                             $e->getMessage(), 'error', 'createuser');
                     $problemswhileapplying = true;
@@ -479,6 +489,11 @@ class totara_sync_element_user extends totara_sync_element {
             try {
                 $this->sync_user_assignments($suser->uid, $suser);
             } catch (Exception $e) {
+                // We don't want this exception to stop processing so we will continue.
+                // The code may have started a transaction. If it did then roll back the transaction.
+                if ($DB->is_transaction_started()) {
+                    $DB->force_transaction_rollback();
+                }
                 $this->addlog(get_string('cannotcreateuserassignments', 'tool_totara_sync', $suser->idnumber) . ': ' .
                         $e->getMessage(), 'warn', 'updateusers');
                 $problemswhileapplying = true;

@@ -235,6 +235,13 @@ function testing_update_composer_dependencies() {
         exit($code);
     }
 
+    // Totara: find out if we need to update.
+    $output = null;
+    exec("php composer.phar validate", $output, $code);
+    if ($code == 2) {
+        passthru("php composer.phar update", $code);
+    }
+
     // Return to our original location.
     chdir($cwd);
 }

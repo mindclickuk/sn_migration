@@ -51,10 +51,15 @@ $nojs = optional_param('nojs', false, PARAM_BOOL);
 $returnurl = optional_param('returnurl', '', PARAM_LOCALURL);
 $sesskey = optional_param('sesskey', '', PARAM_TEXT);
 
+require_login();
+require_sesskey();
+
+// Check if Goals are enabled.
+goal::check_feature_enabled();
+
 // Check permissions.
 $sitecontext = context_system::instance();
 $straddgoals = get_string('addgoals', 'totara_hierarchy');
-require_sesskey();
 
 // You must have some form of managegoals permission to see this page.
 $admin = has_capability('totara/hierarchy:managegoalassignments', $sitecontext);

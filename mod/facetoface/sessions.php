@@ -354,6 +354,10 @@ if ($fromform = $mform->get_data()) { // Form submitted
 
     // Save any calendar entries.
     $session->sessiondates = $sessiondates;
+    $data = file_postupdate_standard_editor($fromform, 'details', $editoroptions, $context, 'mod_facetoface', 'session', $session->id);
+    $session->details = $data->details;
+    $DB->set_field('facetoface_sessions', 'details', $data->details, array('id' => $session->id));
+
     facetoface_update_calendar_entries($session, $facetoface);
 
     if ($update) {
@@ -361,9 +365,6 @@ if ($fromform = $mform->get_data()) { // Form submitted
     } else {
         \mod_facetoface\event\session_created::create_from_session($session, $context)->trigger();
     }
-
-    $data = file_postupdate_standard_editor($fromform, 'details', $editoroptions, $context, 'mod_facetoface', 'session', $session->id);
-    $DB->set_field('facetoface_sessions', 'details', $data->details, array('id' => $session->id));
 
     redirect($returnurl);
 }

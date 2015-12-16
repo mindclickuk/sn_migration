@@ -37,9 +37,12 @@ require_login();
 require_sesskey();
 require_capability('totara/appraisal:viewassignedusers', context_system::instance());
 
+// Check if Appraisals are enabled.
+appraisal::check_feature_enabled();
+
 $module = required_param('module', PARAM_COMPONENT);
-if ($module === '') {
-    throw new invalid_parameter_exception("Invalid module name");
+if ($module !== 'appraisal') {
+    throw new invalid_parameter_exception("Invalid module name, must be appraisal");
 }
 
 $itemid = required_param('itemid', PARAM_INT);

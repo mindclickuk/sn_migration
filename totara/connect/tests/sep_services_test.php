@@ -342,9 +342,11 @@ class totara_connect_sep_services_testcase extends advanced_testcase {
 
         // Try to find out if everything works.
         $this->assertTrue(\core\session\manager::session_exists($sid));
+        $this->assertSame('0', $DB->get_field('totara_connect_sso_sessions', 'active', array('id' => $session->id)));
         $result = sep_services::get_sso_user($client, array('ssotoken' => $session->ssotoken));
         $this->assertSame('success', $result['status']);
         $this->assertCount(53, (array)$result['data']);
+        $this->assertSame('1', $DB->get_field('totara_connect_sso_sessions', 'active', array('id' => $session->id)));
 
         $user = (object)$result['data'];
         $this->assertSame($user1->id, $user->id);
@@ -357,9 +359,11 @@ class totara_connect_sep_services_testcase extends advanced_testcase {
         set_config('syncpasswords', '1', 'totara_connect');
 
         $this->assertTrue(\core\session\manager::session_exists($sid));
+        $DB->set_field('totara_connect_sso_sessions', 'active', 0, array('id' => $session->id));
         $result = sep_services::get_sso_user($client, array('ssotoken' => $session->ssotoken));
         $this->assertSame('success', $result['status']);
         $this->assertCount(53, (array)$result['data']);
+        $this->assertSame('1', $DB->get_field('totara_connect_sso_sessions', 'active', array('id' => $session->id)));
 
         $user = (object)$result['data'];
         $this->assertSame($user1->id, $user->id);
@@ -375,6 +379,15 @@ class totara_connect_sep_services_testcase extends advanced_testcase {
         $result = sep_services::get_sso_user($client, array('ssotoken' => sha1('unknown')));
         $this->assertSame('fail', $result['status']);
         $this->assertSame('invalid sso token', $result['data']['ssotoken']);
+
+        // Reused ssotoken.
+
+        $DB->set_field('totara_connect_sso_sessions', 'active', 0, array('id' => $session->id));
+        $result = sep_services::get_sso_user($client, array('ssotoken' => $session->ssotoken));
+        $this->assertSame('success', $result['status']);
+        $result = sep_services::get_sso_user($client, array('ssotoken' => $session->ssotoken));
+        $this->assertSame('error', $result['status']);
+        $this->assertSame('reused ssotoken', $result['message']);
 
         // Session timed out.
 

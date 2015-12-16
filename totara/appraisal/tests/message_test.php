@@ -378,6 +378,11 @@ class appraisal_message_test extends appraisal_testcase {
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
         $user3 = $this->getDataGenerator()->create_user();
+
+        // Record the time before we prepare the appraisal.
+        $minactivationtime = time();
+
+        /** @var appraisal $appraisal */
         list($appraisal) = $this->prepare_appraisal_with_users(array(), array($user1, $user2, $user3));
 
         $map = $this->map($appraisal);
@@ -474,15 +479,15 @@ class appraisal_message_test extends appraisal_testcase {
         // The appraisal activation immediate event is marked triggered.
         // The appraisal activation after and stage due (all threee) events should be scheduled.
 
-        // Record the time before we activate.
-        $minactivationtime = time() - 2;
-
         // Make sure we are redirecting emails.
         $sink = $this->redirectEmails();
         $this->assertTrue(phpunit_util::is_redirecting_phpmailer());
 
         // Activate the appraisal.
         $appraisal->activate();
+
+        // Record the time after activation has completed. The scheduled times should be relative to a time in between.
+        $maxactivationtime = time();
 
         // Get the emails that were just sent.
         $emails = $sink->get_messages();
@@ -498,9 +503,6 @@ class appraisal_message_test extends appraisal_testcase {
         }
         $sink->close();
 
-        // Record the time after activation has completed. The scheduled times should be relative to a time in between.
-        $maxactivationtime = time() + 2;
-
         // Check that the appraisal activation immediate event has been marked triggered.
         $msgappractivateimmediatetest = new appraisal_message($msgappractivateimmediateid);
         $this->assertEquals(1, $msgappractivateimmediatetest->wastriggered);
@@ -508,23 +510,23 @@ class appraisal_message_test extends appraisal_testcase {
         // Check that the appraisal activation after and stage due events have not been marked triggered and are scheduled.
         $msgappractivateaftertest = new appraisal_message($msgappractivateafterid);
         $this->assertEquals(0, $msgappractivateaftertest->wastriggered);
-        $this->assertGreaterThan($minactivationtime + DAYSECS, $msgappractivateaftertest->timescheduled);
-        $this->assertLessThan($maxactivationtime + DAYSECS, $msgappractivateaftertest->timescheduled);
+        $this->assertGreaterThanOrEqual($minactivationtime + DAYSECS, $msgappractivateaftertest->timescheduled);
+        $this->assertLessThanOrEqual($maxactivationtime + DAYSECS, $msgappractivateaftertest->timescheduled);
         unset($msgappractivateaftertest);
         $msgstageduebeforetest = new appraisal_message($msgstageduebeforeid);
         $this->assertEquals(0, $msgstageduebeforetest->wastriggered);
-        $this->assertGreaterThan($minactivationtime, $msgstageduebeforetest->timescheduled);
-        $this->assertLessThan($maxactivationtime, $msgstageduebeforetest->timescheduled);
+        $this->assertGreaterThanOrEqual($minactivationtime, $msgstageduebeforetest->timescheduled);
+        $this->assertLessThanOrEqual($maxactivationtime, $msgstageduebeforetest->timescheduled);
         unset($msgstageduebeforetest);
         $msgstagedueimmediatetest = new appraisal_message($msgstagedueimmediateid);
         $this->assertEquals(0, $msgstagedueimmediatetest->wastriggered);
-        $this->assertGreaterThan($minactivationtime + DAYSECS, $msgstagedueimmediatetest->timescheduled);
-        $this->assertLessThan($maxactivationtime + DAYSECS, $msgstagedueimmediatetest->timescheduled);
+        $this->assertGreaterThanOrEqual($minactivationtime + DAYSECS, $msgstagedueimmediatetest->timescheduled);
+        $this->assertLessThanOrEqual($maxactivationtime + DAYSECS, $msgstagedueimmediatetest->timescheduled);
         unset($msgstagedueimmediatetest);
         $msgstagedueaftertest = new appraisal_message($msgstagedueafterid);
         $this->assertEquals(0, $msgstagedueaftertest->wastriggered);
-        $this->assertGreaterThan($minactivationtime + DAYSECS * 2, $msgstagedueaftertest->timescheduled);
-        $this->assertLessThan($maxactivationtime + DAYSECS * 2, $msgstagedueaftertest->timescheduled);
+        $this->assertGreaterThanOrEqual($minactivationtime + DAYSECS * 2, $msgstagedueaftertest->timescheduled);
+        $this->assertLessThanOrEqual($maxactivationtime + DAYSECS * 2, $msgstagedueaftertest->timescheduled);
         unset($msgstagedueaftertest);
 
         // Testing Part 2 - Run cron now. The following should occur:
@@ -600,16 +602,19 @@ class appraisal_message_test extends appraisal_testcase {
         // One stage complete after message is scheduled in appraisal_user_event.
         // The stage complete immediate event should NOT be marked triggered.
 
-        // Record the time before we trigger.
-        $mincompletetime = time() - 2;
-
         // Make sure we are redirecting emails.
         $sink = $this->redirectEmails();
         $this->assertTrue(phpunit_util::is_redirecting_phpmailer());
 
+        // Record the time before we trigger.
+        $mincompletetime = time();
+
         // Trigger the stage complete event.
         $roleassignment = appraisal_role_assignment::get_role($appraisal->id, $user1->id, $user1->id, appraisal::ROLE_LEARNER);
         $this->answer_question($appraisal, $roleassignment, 0, 'completestage');
+
+        // Record the time after triggering. The scheduled time should be relative to a time in between.
+        $maxcompletetime = time();
 
         // Get the emails that were just sent.
         $emails = $sink->get_messages();
@@ -622,9 +627,6 @@ class appraisal_message_test extends appraisal_testcase {
             unset($expectedemails[$location]);
         }
         $sink->close();
-
-        // Record the time after triggering. The scheduled time should be relative to a time in between.
-        $maxcompletetime = time() + 2;
 
         // Check that the stage completion immediate is NOT marked triggered.
         $msgstagecompimmediatetest = new appraisal_message($msgstagecompimmediateid);
@@ -640,8 +642,8 @@ class appraisal_message_test extends appraisal_testcase {
         $userevent = reset($userevents);
         $this->assertEquals($user1->id, $userevent->userid);
         $this->assertEquals($msgstagecompafterid, $userevent->eventid);
-        $this->assertGreaterThan($mincompletetime + DAYSECS, $userevent->timescheduled);
-        $this->assertLessThan($maxcompletetime + DAYSECS, $userevent->timescheduled);
+        $this->assertGreaterThanOrEqual($mincompletetime + DAYSECS, $userevent->timescheduled);
+        $this->assertLessThanOrEqual($maxcompletetime + DAYSECS, $userevent->timescheduled);
         unset($msgstagecompaftertest);
 
         // Testing Part 5 - Run cron after three days. The following should occur:

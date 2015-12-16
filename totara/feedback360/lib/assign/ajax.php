@@ -38,9 +38,12 @@ require_login();
 require_sesskey();
 require_capability('totara/feedback360:viewassignedusers', context_system::instance());
 
+// Check if 360 Feedbacks are enabled.
+feedback360::check_feature_enabled();
+
 $module = required_param('module', PARAM_COMPONENT);
-if ($module === '') {
-    throw new invalid_parameter_exception("Invalid module name");
+if ($module !== 'feedback360') {
+    throw new invalid_parameter_exception("Invalid module name, must be feedback360");
 }
 
 $itemid = required_param('itemid', PARAM_INT);

@@ -216,7 +216,14 @@ echo html_writer::tag('title', 'LoadSCO');
 
    function doredirect() {
         if (myGetAPIHandle() != null) {
-            location = "<?php echo $result ?>";
+            <?php
+            // Totara: open in popup (simple) option.
+            if ($scorm->popup == 2) {
+                echo 'openContentWindow();';
+            } else {
+                echo 'location = "'. $result .'";';
+            }
+            ?>
         }
         else {
             document.body.innerHTML = "<p><?php echo get_string('activityloading', 'scorm');?>" +
@@ -236,6 +243,29 @@ echo html_writer::tag('title', 'LoadSCO');
                                         }, 1000);
         }
     }
+    <?php // Totara: BOF open in popup (simple) option. ?>
+    function openContentWindow() {
+        cWin = window.top.open("<?php echo $result ?>","scorm_content_<?php echo $scorm->id; ?>");
+        monitorContentWindow();
+    }
+    function monitorContentWindow() {
+        if (cWin != null) cWin.focus();
+        document.body.innerHTML = <?php echo json_encode(get_string('popup_simple_notice', 'scorm')); ?>;
+        window.top.onbeforeunload = function() { if (cWin != null && !cWin.closed) return <?php echo json_encode(get_string('popup_simple_closenotice', 'scorm')); ?> };
+        window.top.onunload = function() { if (cWin != null && !cWin.closed) cWin.close(); };
+        setTimeout(checkContentWindowOpen,500);
+    }
+    function checkContentWindowOpen() {
+        if (cWin == null) {
+            document.body.innerHTML = <?php echo json_encode(get_string('popup_simple_popupblockednotice', 'scorm')); ?> + "<p><a href=\"javascript:openContentWindow();\" onclick=\"openContentWindow();\">" + <?php echo json_encode(get_string('popup_simple_popupmanuallaunch', 'scorm')); ?> + "</a></p>";
+        } else if (cWin.closed) {
+            document.body.innerHTML = <?php echo json_encode(get_string('popup_simple_redirectingnotice', 'scorm')); ?> + "&nbsp;<img src='<?php echo $OUTPUT->pix_url('wait', 'scorm') ?>'></p>";
+            setTimeout((function(){window.top.location = "<?php echo $CFG->wwwroot.'/course/view.php?id='.$scorm->course; ?>";}),2000);
+        } else {
+            setTimeout(checkContentWindowOpen,2000);
+        }
+    }
+    <?php // Totara: EOF open in popup (simple) option. ?>
     //]]>
     </script>
     <noscript>

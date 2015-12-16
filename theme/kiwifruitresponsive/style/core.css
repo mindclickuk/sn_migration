@@ -741,12 +741,10 @@ legend {
 .fitem .legend {
     text-transform: initial;
 }
-fieldset.surround legend,
-.mform fieldset.surround legend {
+fieldset.surround > legend,
+.mform fieldset.surround > legend {
     font-weight:700;
-    font-size:16px;
     color:#333333;
-    padding:0px 5px;
 }
 .mform .label,
 .mform .flabel {

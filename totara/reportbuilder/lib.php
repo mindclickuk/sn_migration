@@ -1292,7 +1292,7 @@ class reportbuilder {
         global $CFG, $SESSION;
         require_once($CFG->dirroot . '/totara/reportbuilder/report_forms.php');
         $clearfilters = optional_param('clearfilters', 0, PARAM_INT);
-        $mformstandard = new report_builder_standard_search_form($this->get_current_url(),
+        $mformstandard = new report_builder_standard_search_form(null,
                 array('fields' => $this->get_standard_filters()));
         $adddatastandard = $mformstandard->get_data(false);
         if ($adddatastandard || $clearfilters) {
@@ -1311,7 +1311,7 @@ class reportbuilder {
                 }
             }
         }
-        $mformsidebar = new report_builder_sidebar_search_form($this->get_current_url(),
+        $mformsidebar = new report_builder_sidebar_search_form(null,
                 array('report' => $this, 'fields' => $this->get_sidebar_filters()));
         $adddatasidebar = $mformsidebar->get_data(false);
         if ($adddatasidebar || $clearfilters) {
@@ -1330,7 +1330,7 @@ class reportbuilder {
                 }
             }
         }
-        $mformtoolbar = new report_builder_toolbar_search_form($this->get_current_url());
+        $mformtoolbar = new report_builder_toolbar_search_form(null);
         $adddatatoolbar = $mformtoolbar->get_data(false);
         if ($adddatatoolbar || $clearfilters) {
             if (isset($adddatatoolbar->cleartoolbarsearchtext) || $clearfilters) {
@@ -1657,24 +1657,32 @@ class reportbuilder {
      * Get the current page url maintaining report specific parameters, minus any pagination or sort order elements
      * Good for submitting forms
      *
+     * Note: Make sure $PAGE->set_url() is called before this function is used, otherwise qualified_me is returned.
+     *
      * @return string Current URL, minus any spage and ssort parameters
      */
     function get_current_url() {
-        if (!isset($this->baseurl)) {
-            // Array of parameters to remove from query string.
-            $strip_params = array('spage', 'ssort', 'sid', 'clearfilters');
+        global $PAGE;
 
-            // Note: this should use $PAGE directly and skip all the stripping, qualified_me() is long dead.
-            $autourl = new moodle_url(qualified_me());
-            foreach ($autourl->params() as $name => $value) {
-                if (in_array($name, $strip_params)) {
-                    $autourl->remove_params($name);
+        if (!empty($this->baseurl)) {
+            // Use the cached url, could have been set using set_baseurl or from $PAGE.
+            $currenturl = $this->baseurl;
+        } else if ($PAGE->has_set_url()) {
+            // No url cached, so set the cache to the $PAGE url.
+            $currenturl = new moodle_url($PAGE->url);
+            $this->baseurl = $currenturl;
+        } else {
+            // No cached or $PAGE url, so use qualified_me, but don't cache it ($PAGE may be set before the next call).
+            $currenturl = new moodle_url(qualified_me());
+            foreach ($currenturl->params() as $name => $value) {
+                if (in_array($name, array('spage', 'ssort', 'sid', 'clearfilters'))) {
+                    $currenturl->remove_params($name);
                 }
             }
-            $this->baseurl = $autourl;
         }
+
         // Reapply filter url params.
-        $url = clone($this->baseurl);
+        $url = clone($currenturl);
         foreach ($this->get_current_url_params() as $filtername => $filtervalue) {
             if (is_null($url->param($filtername))) {
                 $url->param($filtername, $filtervalue);

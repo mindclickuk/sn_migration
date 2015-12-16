@@ -104,13 +104,6 @@ class rb_source_facetoface_summary extends rb_base_source {
     function define_columnoptions() {
         $columnoptions = array(
             new rb_column_option(
-                'course',
-                'fullname',
-                get_string('coursename', 'totara_reportbuilder'),
-                "course.fullname",
-                array('joins' => 'course')
-            ),
-            new rb_column_option(
                 'session',
                 'capacity',
                 get_string('sesscapacity', 'rb_source_facetoface_sessions'),
@@ -276,18 +269,13 @@ class rb_source_facetoface_summary extends rb_base_source {
 
         // Include some standard columns.
         $this->add_course_category_fields_to_columns($columnoptions);
+        $this->add_course_fields_to_columns($columnoptions);
 
         return $columnoptions;
     }
 
     protected function define_filteroptions() {
         $filteroptions = array(
-            new rb_filter_option(
-                'course',
-                'fullname',
-                 get_string('coursename', 'totara_reportbuilder'),
-                'text'
-            ),
             new rb_filter_option(
                 'facetoface',
                 'name',
@@ -304,6 +292,7 @@ class rb_source_facetoface_summary extends rb_base_source {
 
         // Add session custom fields to filters.
         $this->add_course_category_fields_to_filters($filteroptions);
+        $this->add_course_fields_to_filters($filteroptions);
 
         return $filteroptions;
     }

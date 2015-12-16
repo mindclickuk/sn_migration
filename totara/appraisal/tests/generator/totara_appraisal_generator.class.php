@@ -122,7 +122,10 @@ class totara_appraisal_generator extends component_generator_base {
 
         // Convert a string based timedue to a timestamp.
         if (isset($data['timedue']) && !is_numeric($data['timedue'])) {
+            $oldtz = date_default_timezone_get();
+            date_default_timezone_set(core_date::get_default_php_timezone());
             $timestamp = strtotime($data['timedue']);
+            date_default_timezone_set($oldtz);
 
             // Update timedue if the date is valid.
             if ($timestamp) {

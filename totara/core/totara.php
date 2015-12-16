@@ -1704,66 +1704,74 @@ function assign_user_position($assignment, $unittest=false) {
     global $CFG, $DB;
 
     $transaction = $DB->start_delegated_transaction();
-
-    // Get old position and organisation (used to inform event of what changed or was removed).
-    $assignment->oldmanagerid = null;
-    $assignment->oldmanagerpath = null;
-    $assignment->oldpositionid = null;
-    $assignment->oldorganisationid = null;
-    if ($assignment->type == POSITION_TYPE_PRIMARY) {
-        $oldassignment = $DB->get_record('pos_assignment', array('userid' => $assignment->userid, 'type' => POSITION_TYPE_PRIMARY));
-        if ($oldassignment) {
-            $assignment->oldmanagerid = $oldassignment->managerid;
-            $assignment->oldmanagerpath = $oldassignment->managerpath;
-            $assignment->oldpositionid = $oldassignment->positionid;
-            $assignment->oldorganisationid = $oldassignment->organisationid;
+    // Start a try...catch, if anything goes wrong we want to rollback the transaction.
+    try {
+        // Get old position and organisation (used to inform event of what changed or was removed).
+        $assignment->oldmanagerid = null;
+        $assignment->oldmanagerpath = null;
+        $assignment->oldpositionid = null;
+        $assignment->oldorganisationid = null;
+        if ($assignment->type == POSITION_TYPE_PRIMARY) {
+            $oldassignment = $DB->get_record('pos_assignment', array('userid' => $assignment->userid, 'type' => POSITION_TYPE_PRIMARY));
+            if ($oldassignment) {
+                $assignment->oldmanagerid = $oldassignment->managerid;
+                $assignment->oldmanagerpath = $oldassignment->managerpath;
+                $assignment->oldpositionid = $oldassignment->positionid;
+                $assignment->oldorganisationid = $oldassignment->organisationid;
+            }
         }
-    }
 
-    // Get old user id.
-    if (!empty($assignment->reportstoid)) {
-        $old_managerid = $DB->get_field('role_assignments', 'userid', array('id' => $assignment->reportstoid));
-    } else {
-        $old_managerid = null;
-    }
-    $managerchanged = false;
-    if ($old_managerid != $assignment->managerid) {
-        $managerchanged = true;
-    }
-    // TODO SCANMSG: Need to figure out how to re-add start time and end time into manager role assignment
-    //          now that the role_assignment record no longer has start/end fields. See:
-    //          http://docs.moodle.org/dev/New_enrolments_in_2.0
-    //          and mdl_enrol and mdl_user_enrolments.
-
-    // Skip this bit during testing as we don't have all the required tables for role assignments.
-    // Get context.
-    $context = context_user::instance($assignment->userid);
-
-    if (!$unittest) {
-        // Get manager role id.
-        $roleid = $CFG->managerroleid;
-        // Delete role assignment if there was a manager but it changed.
-        if ($old_managerid && $managerchanged) {
-            role_unassign($roleid, $old_managerid, $context->id);
+        // Get old user id.
+        if (!empty($assignment->reportstoid)) {
+            $old_managerid = $DB->get_field('role_assignments', 'userid', array('id' => $assignment->reportstoid));
+        } else {
+            $old_managerid = null;
         }
-        // Create new role assignment if there is now and a manager but it changed.
-        if ($assignment->managerid && $managerchanged) {
-            // Assign manager to user.
-            $raid = role_assign(
-                $roleid,
-                $assignment->managerid,
-                $context->id
-            );
-            // Update reportstoid.
-            $assignment->reportstoid = $raid;
+        $managerchanged = false;
+        if ($old_managerid != $assignment->managerid) {
+            $managerchanged = true;
         }
+        // TODO SCANMSG: Need to figure out how to re-add start time and end time into manager role assignment
+        //          now that the role_assignment record no longer has start/end fields. See:
+        //          http://docs.moodle.org/dev/New_enrolments_in_2.0
+        //          and mdl_enrol and mdl_user_enrolments.
+
+        // Skip this bit during testing as we don't have all the required tables for role assignments.
+        // Get context.
+        $context = context_user::instance($assignment->userid);
+
+        if (!$unittest) {
+            // Get manager role id.
+            $roleid = $CFG->managerroleid;
+            // Delete role assignment if there was a manager but it changed.
+            if ($old_managerid && $managerchanged) {
+                role_unassign($roleid, $old_managerid, $context->id);
+            }
+            // Create new role assignment if there is now and a manager but it changed.
+            if ($assignment->managerid && $managerchanged) {
+                // Assign manager to user.
+                $raid = role_assign(
+                    $roleid,
+                    $assignment->managerid,
+                    $context->id
+                );
+                // Update reportstoid.
+                $assignment->reportstoid = $raid;
+            }
+        }
+        // Store the date of this assignment.
+        require_once($CFG->dirroot . '/totara/program/lib.php');
+        prog_store_position_assignment($assignment);
+        // Save assignment.
+        $assignment->save($managerchanged);
+        $transaction->allow_commit();
+
+    } catch (Exception $e) {
+
+        // Something has gone wrong, drat, we need to rollback.
+        // The rollback method will throw the exception again for us when its done.
+        $transaction->rollback($e);
     }
-    // Store the date of this assignment.
-    require_once($CFG->dirroot.'/totara/program/lib.php');
-    prog_store_position_assignment($assignment);
-    // Save assignment.
-    $assignment->save($managerchanged);
-    $transaction->allow_commit();
 
     // Event.
     \totara_core\event\position_updated::create_from_instance($assignment, $context)->trigger();

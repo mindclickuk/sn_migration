@@ -31,29 +31,31 @@ require_login();
 $programid = required_param('programid', PARAM_INT);
 require_capability('totara/program:configureassignments', program_get_context($programid));
 
-// Already selected items
+// Items selected but not yet saved.
 $selected = optional_param('selected', array(), PARAM_SEQUENCE);
-$usernamefields = get_all_user_name_fields(true);
-if ($selected != false) {
-    list($selectedsql, $selectedparams) = $DB->get_in_or_equal(explode(',', $selected));
-    $selected = $DB->get_records_select('user', "id {$selectedsql}", $selectedparams, '', 'id, ' . $usernamefields . ', email');
-    foreach ($selected as $select) {
-        $select->fullname = fullname($select);
-    }
-}
+$removed = optional_param('removed', array(), PARAM_SEQUENCE);
+
+$selectedids = totara_prog_removed_selected_ids($programid, $selected, $removed, ASSIGNTYPE_INDIVIDUAL);
 
 // Get all users
 $guest = guest_user();
-
+$usernamefields = get_all_user_name_fields(true);
 $items = $DB->get_records_select('user', 'deleted = 0 AND suspended = 0 AND id != ?', array($guest->id), '',
     'id, ' . $usernamefields . ', email');
 
+// We'll remove users from $selected whose id is not in $selectedids.
+$allselected = $items;
 foreach ($items as $item) {
     $item->fullname = fullname($item);
+    if (isset($selectedids[$item->id])) {
+        $allselected[$item->id]->fullname = $item->fullname;
+    } else {
+        unset($allselected[$item->id]);
+    }
 }
 
 // Don't let them remove the currently selected ones
-$unremovable = $selected;
+$unremovable = $allselected;
 
 ///
 /// Setup dialog
@@ -67,7 +69,7 @@ $dialog->type = totara_dialog_content::TYPE_CHOICE_MULTI;
 $dialog->items = $items;
 
 // Set disabled/selected items
-$dialog->selected_items = $selected;
+$dialog->selected_items = $allselected;
 
 // Set unremovable items
 $dialog->unremovable_items = $unremovable;

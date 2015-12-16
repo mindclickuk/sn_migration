@@ -416,7 +416,10 @@ class core_completionlib_testcase extends advanced_testcase {
         global $DB, $SESSION;
         $this->mock_setup();
 
-        $c = new completion_info((object)array('id'=>42));
+        $c = $this->getMock('completion_info',
+            array('internal_get_state', 'update_state'),
+            array((object)array('id'=>42)));
+
         $cm = (object)array('id'=>13, 'course'=>42);
 
         // 1. Not current user, record exists.
@@ -512,9 +515,32 @@ class core_completionlib_testcase extends advanced_testcase {
             ->method('get_records_sql')
             ->will($this->returnValue(array('1'=>$basicrecord)));
 
-        // There are two CMids in total, the one we had data for and another one.
+        $crazyrecord = (object)array('tulips'=>'purple');
+        $data = new StdClass;
+        $data->id              = 0;
+        $data->coursemoduleid  = 14;
+        $data->userid          = 314159;
+        $data->completionstate = COMPLETION_INCOMPLETE;
+        $data->viewed          = 0;
+        $data->timemodified    = 0;
+        $data->timecompleted   = null;
+        $DB->expects($this->at(2))
+            ->method('get_record')
+            ->with('course_modules', array('id' => 14))
+            ->will($this->returnValue($crazyrecord));
+        $c->expects($this->at(0))
+            ->method('internal_get_state')
+            ->with($crazyrecord, 314159, $data)
+            ->will($this->returnValue(true));
+        $c->expects($this->at(1))
+            ->method('update_state');
+        $DB->expects($this->at(3))
+            ->method('get_record')
+            ->will($this->returnValue($crazyrecord));
+
+        // There are three CMids in total, the one we had data for and another two, one mocked as complete.
         $modinfo = new stdClass();
-        $modinfo->cms = array((object)array('id'=>13), (object)array('id'=>14));
+        $modinfo->cms = array((object)array('id'=>13), (object)array('id'=>14), (object)array('id'=>15));
         $result = $c->get_data($cm, true, 0, $modinfo);
 
         // Check result.
@@ -523,8 +549,8 @@ class core_completionlib_testcase extends advanced_testcase {
         // Check the cache contents.
         $this->assertTrue(time()-$SESSION->completioncache[42]['updated']<2);
         $SESSION->completioncache[42]['updated'] = $now;
-        $this->assertEquals(array(42 => array(13 => $basicrecord, 14 => (object)array(
-            'id' => 0, 'coursemoduleid' => 14, 'userid' => 314159, 'completionstate' => COMPLETION_INCOMPLETE,
+        $this->assertEquals(array(42 => array(13 => $basicrecord, 14 => $crazyrecord, 15 => (object)array(
+            'id' => 0, 'coursemoduleid' => 15, 'userid' => 314159, 'completionstate' => COMPLETION_INCOMPLETE,
             'viewed' => 0, 'timemodified' => 0, 'timecompleted' => null), 'updated' => $now)), $SESSION->completioncache);
     }
 

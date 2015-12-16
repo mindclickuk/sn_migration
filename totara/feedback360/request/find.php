@@ -60,11 +60,14 @@ if (!empty($selected)) {
 
     // Set up some things to disable unassignable users.
     list($disable_insql, $disable_params) = $DB->get_in_or_equal($selectedids);
-    $disable_sql = "SELECT u.*,
-                    ".$DB->sql_fullname('u.firstname', 'u.lastname')." AS fullname
+    $disable_sql = "SELECT u.*
                     FROM {user} u
                     WHERE id {$disable_insql}";
     $disable = $DB->get_records_sql($disable_sql, $disable_params);
+
+    foreach ($disable as $record) {
+        $record->fullname = fullname($record);
+    }
 
     // Set up some things to get the assignable users.
     list($selectedsql, $selectedparams) = $DB->get_in_or_equal($selectedids, SQL_PARAMS_QM, 'param', false);
@@ -79,12 +82,11 @@ if (!empty($selected)) {
 }
 
 // Load potential managers for this user.
+$usernamefields = get_all_user_name_fields(true, 'u');
 $availableusers = $DB->get_records_sql(
    "
         SELECT
-            u.id,
-            ".$DB->sql_fullname('u.firstname', 'u.lastname')." AS fullname,
-            u.email
+            u.id, {$usernamefields}, u.email
         FROM
             {user} u
         WHERE
@@ -97,6 +99,11 @@ $availableusers = $DB->get_records_sql(
             u.lastname
     ",
     $params, 0, TOTARA_DIALOG_MAXITEMS + 1);
+
+foreach ($availableusers as $user) {
+    $user->fullname = fullname($user);
+}
+
 // Limit results to 1 more than the maximum number that might be displayed.
 // there is no point returning any more as we will never show them.
 if (!$nojs) {

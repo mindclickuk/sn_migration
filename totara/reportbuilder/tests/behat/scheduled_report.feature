@@ -108,11 +108,11 @@ Feature: Test that report builder reports can be scheduled
     Then I should see "ODS" in the "Schedulable Report" "table_row"
 
     When I click on "Edit" "link" in the "Schedulable Report" "table_row"
-    And I set the field "Export" to "PDF (Landscape)"
+    And I set the field "Export" to "PDF landscape"
     And I press "Save changes"
-    Then I should see "PDF (Landscape)" in the "Schedulable Report" "table_row"
+    Then I should see "PDF landscape" in the "Schedulable Report" "table_row"
 
     When I click on "Edit" "link" in the "Schedulable Report" "table_row"
-    And I set the field "Export" to "PDF (Portrait)"
+    And I set the field "Export" to "PDF portrait"
     And I press "Save changes"
-    Then I should see "PDF (Portrait)" in the "Schedulable Report" "table_row"
+    Then I should see "PDF portrait" in the "Schedulable Report" "table_row"

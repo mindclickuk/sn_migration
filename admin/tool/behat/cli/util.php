@@ -222,7 +222,7 @@ if ($options['install']) {
 
 } else if ($options['enable']) {
     echo "Acceptance tests environment enabled on $CFG->behat_wwwroot, to run the tests use:" . PHP_EOL;
-    echo behat_command::get_behat_command(true, true);
+    echo ' ' . behat_command::get_behat_command(true, true); // Totara: keep the command nicely indented!!!
     echo PHP_EOL;
 
 } else if ($options['disable']) {

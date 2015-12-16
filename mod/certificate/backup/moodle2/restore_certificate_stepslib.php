@@ -68,6 +68,7 @@ class restore_certificate_activity_structure_step extends restore_activity_struc
         $data = (object)$data;
         $oldid = $data->id;
 
+        $data->userid = $this->get_mappingid('user', $data->userid); // Totara user restore fix.
         $data->certificateid = $this->get_new_parentid('certificate');
         $data->timecreated = $this->apply_date_offset($data->timecreated);
 
@@ -81,6 +82,7 @@ class restore_certificate_activity_structure_step extends restore_activity_struc
         $data = (object)$data;
         $oldid = $data->id;
 
+        $data->userid = $this->get_mappingid('user', $data->userid); // Totara user restore fix.
         $data->certificateid = $this->get_new_parentid('certificate');
 
         $newitemid = $DB->insert_record('certificate_issues_history', $data);

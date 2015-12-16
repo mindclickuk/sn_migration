@@ -71,6 +71,41 @@ M.totara_reportbuilder_instantfilter = M.totara_reportbuilder_instantfilter || {
         });
     },
 
+    split_search: function (search) {
+        var ar = {};
+        if (search == undefined || search.length < 1) { return ar;}
+        var pairs = search.slice(1).split('&');
+        for (var i = 0; i < pairs.length; i++) {
+            var key_val = pairs[i].split('=');
+            // Replace '+' (alt space) char explicitly since decode does not.
+            var arkey = decodeURIComponent(key_val[0]).replace(/\+/g,' ');
+            var arval = decodeURIComponent(key_val[1]).replace(/\+/g,' ');
+            if (ar[arkey] == undefined) {
+                ar[arkey] = new Array();
+            }
+            ar[arkey].push(arval);
+        }
+        return ar;
+    },
+
+    remove_param: function (ar, key) {
+        if (ar[key]) {
+            delete ar[key];
+        }
+        return ar;
+    },
+
+    build_search: function (ar) {
+        var search = new String("?");
+        for (var key in ar) {
+            for (var i = 0; i < ar[key].length; i++) {
+                search += search == "?" ? "" : "&";
+                search += encodeURIComponent(key) + "=" + encodeURIComponent(ar[key][i]);
+            }
+        }
+        return search;
+    },
+
     /**
      * refresh results panel, used by change handler on sidebar search
      * as well as callbacks from reportbuilder sources that change
@@ -79,9 +114,18 @@ M.totara_reportbuilder_instantfilter = M.totara_reportbuilder_instantfilter || {
      * @param callback    function to run once data is refreshed
      */
     refresh_results: function (callback) {
+        // Get the current page params and strip off those we don't want to pass on.
+        var pageparams = window.location.search;
+        var paramsarray = M.totara_reportbuilder_instantfilter.split_search(pageparams);
+        paramsarray = M.totara_reportbuilder_instantfilter.remove_param(paramsarray, 'spage');
+        paramsarray = M.totara_reportbuilder_instantfilter.remove_param(paramsarray, 'ssort');
+        paramsarray = M.totara_reportbuilder_instantfilter.remove_param(paramsarray, 'sid');
+        paramsarray = M.totara_reportbuilder_instantfilter.remove_param(paramsarray, 'clearfilters');
+        pageparams = M.totara_reportbuilder_instantfilter.build_search(paramsarray);
+
         // Make the ajax call.
         return $.post(
-            M.cfg.wwwroot + '/totara/reportbuilder/ajax/instantreport.php' + window.location.search,
+            M.cfg.wwwroot + '/totara/reportbuilder/ajax/instantreport.php' + pageparams,
             $('.rb-sidebar').serialize()
         ).done( function (data) {
                 // Clear all waiting icons.

@@ -28,7 +28,7 @@ require_once($CFG->dirroot.'/totara/reportbuilder/filters/lib.php');
 require_once($CFG->dirroot.'/totara/reportbuilder/filters/hierarchy_multi.php');
 
 $ids = required_param('ids', PARAM_SEQUENCE);
-$ids = explode(',', $ids);
+$ids = array_filter(explode(',', $ids));
 $filtername = required_param('filtername', PARAM_TEXT);
 
 require_login();
@@ -36,10 +36,12 @@ require_login();
 $PAGE->set_context(context_system::instance());
 
 echo $OUTPUT->container_start('list-' . $filtername);
-list($in_sql, $in_params) = $DB->get_in_or_equal($ids);
-if (!empty($ids) && $items = $DB->get_records_select('pos', "id {$in_sql}", $in_params)) {
-    foreach ($items as $item) {
-        echo display_selected_hierarchy_item($item, $filtername);
+if (!empty($ids)) {
+    list($in_sql, $in_params) = $DB->get_in_or_equal($ids);
+    if ($items = $DB->get_records_select('pos', "id {$in_sql}", $in_params)) {
+        foreach ($items as $item) {
+            echo display_selected_hierarchy_item($item, $filtername);
+        }
     }
 }
 echo $OUTPUT->container_end();

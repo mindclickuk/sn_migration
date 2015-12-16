@@ -32,6 +32,8 @@ $goalid         = required_param('goalid', PARAM_INT);
 $assigntype     = required_param('assigntype', PARAM_INT);
 $modid          = required_param('modid', PARAM_INT);
 
+require_login();
+
 // Check if Goals are enabled.
 goal::check_feature_enabled();
 
@@ -64,11 +66,8 @@ $PAGE->set_heading($strdelgoals);
 $type = goal::goal_assignment_type_info($assigntype, $goalid, $modid);
 $strassig = format_string($type->goalname) . ' - ' . format_string($type->modname);
 
-// Permissions check.
-$context = context_system::instance();
-
 // You must have some form of managegoals permission to see this page.
-$admin = has_capability('totara/hierarchy:managegoalassignments', $context);
+$admin = has_capability('totara/hierarchy:managegoalassignments', $sitecontext);
 $manager = false;
 $self = false;
 

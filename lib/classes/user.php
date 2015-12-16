@@ -128,6 +128,7 @@ class core_user {
         $dummyuser->middlename = '';
         $dummyuser->alternatename = '';
         $dummyuser->imagealt = '';
+        $dummyuser->lang = $CFG->lang;
         return $dummyuser;
     }
 

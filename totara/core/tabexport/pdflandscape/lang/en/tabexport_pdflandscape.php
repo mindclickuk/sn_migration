@@ -23,5 +23,5 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['optionname'] = 'PDF (Landscape)';
-$string['pluginname'] = 'PDF (Landscape) export';
+$string['optionname'] = 'PDF landscape';
+$string['pluginname'] = 'PDF landscape export';

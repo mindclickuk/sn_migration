@@ -24,7 +24,7 @@
 
 require_once(dirname(dirname(dirname(dirname(__FILE__)))) . '/config.php');
 require_once($CFG->dirroot.'/totara/core/dialogs/dialog_content_hierarchy.class.php');
-require_once("{$CFG->dirroot}/totara/program/lib.php");
+require_once($CFG->dirroot . '/totara/program/lib.php');
 
 $PAGE->set_context(context_system::instance());
 require_login();
@@ -43,9 +43,11 @@ $type = required_param('type', PARAM_ALPHA);
 switch ($type) {
     case 'position':
         $table = 'pos';
+        $assigntype = ASSIGNTYPE_POSITION;
         break;
     case 'organisation':
         $table = 'org';
+        $assigntype = ASSIGNTYPE_ORGANISATION;
         break;
     default:
         throw new invalid_parameter_exception;
@@ -62,13 +64,18 @@ $treeonly = optional_param('treeonly', false, PARAM_BOOL);
 
 // Already selected items
 $selected = optional_param('selected', array(), PARAM_SEQUENCE);
-if ($selected != false) {
-    list($selectedsql, $selectedparams) = $DB->get_in_or_equal(explode(',', $selected));
-    $selected = $DB->get_records_select($table, "id {$selectedsql}", $selectedparams);
+$removed = optional_param('removed', array(), PARAM_SEQUENCE);
+
+$selectedids = totara_prog_removed_selected_ids($programid, $selected, $removed, $assigntype);
+
+$allselected = array();
+if (!empty($selectedids)) {
+    list($selectedsql, $selectedparams) = $DB->get_in_or_equal($selectedids);
+    $allselected = $DB->get_records_select($table, "id {$selectedsql}", $selectedparams);
 }
 
 // Don't let them remove the currently selected ones
-$unremovable = $selected;
+$unremovable = $allselected;
 
 
 ///
@@ -85,7 +92,7 @@ $dialog->show_treeview_only = $treeonly;
 $dialog->load_items($parentid);
 
 // Set disabled/selected items
-$dialog->selected_items = $selected;
+$dialog->selected_items = $allselected;
 
 // Set unremovable items
 $dialog->unremovable_items = $unremovable;

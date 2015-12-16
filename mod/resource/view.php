@@ -83,11 +83,6 @@ if (count($files) < 1) {
     unset($files);
 }
 
-// If the course format is singleactivity and the viewer is an admin then override the display setting and set to auto.
-if ($course->format == 'singleactivity' && has_capability('moodle/course:manageactivities', $context)) {
-    $resource->display = RESOURCELIB_DISPLAY_AUTO;
-}
-
 $resource->mainfile = $file->get_filename();
 $displaytype = resource_get_final_display_type($resource);
 if ($displaytype == RESOURCELIB_DISPLAY_OPEN || $displaytype == RESOURCELIB_DISPLAY_DOWNLOAD) {

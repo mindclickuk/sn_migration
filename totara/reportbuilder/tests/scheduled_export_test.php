@@ -65,6 +65,10 @@ class totara_reportbuilder_scheduled_export_testcase extends advanced_testcase {
         $plugins = \totara_core\tabexport_writer::get_export_classes();
 
         foreach ($plugins as $plugin => $classname) {
+            if (!$classname::is_ready()) {
+                // We cannot test plugins that are not ready.
+                continue;
+            }
             $schedule = new stdClass();
             $schedule->id = 0;
             $schedule->reportid = $report->_id;

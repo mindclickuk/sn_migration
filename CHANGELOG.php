@@ -3,6 +3,185 @@
 
 Totara LMS Changelog
 
+Release 2.9.2 (14th December 2015):
+===================================
+
+
+Security issues:
+
+    TL-7957        Totara Connect now prevents reuse of ssotokens for user logins
+    TL-7975        Added read/write access controls to group assignment code throughout Totara
+    TL-8076        Prevented access to external blog pages when either blogs or external blogs are disabled
+
+
+New features:
+
+    TL-7679        New PDF export plugin in Report builder using wkhtmltopdf binary
+
+                   This export plugin is compatible with RTL languages, has increased
+                   performance, and lowered memory use.
+
+
+Improvements:
+
+    TL-4429        Added an advanced multi-item course name filter to various Report builder report sources
+    TL-6283        Removed all uses of deprecated function sql_fullname in Feedback360
+    TL-6474        Shortened the display of Report builder Graph labels and legend entries
+
+                   It is now possible to specify limitations on label length for Report
+                   builder graphs using the following syntax in the custom settings input:
+                     label_shorten = 20
+                     legend_shorten = 40
+
+                   To get the previous behaviour without shortening use value 0.
+
+    TL-7810        Improved the performance of building hierarchy lists
+    TL-8020        Added advanced multi-item Position and Organisation name filters to various Report builder report sources
+    TL-8061        Changed the default settings for badge owner notifications to always send email
+
+                   This only effects new installs. Before this patch, by default, badge
+                   creators would not receive an email (or any notification) if they were
+                   logged in.
+
+    TL-8065        Improved the accessibility of the question bank export
+    TL-8066        Improved the performance of the Audience enrolments sync
+    TL-8073        Blogs are now disabled by default in new installations
+    TL-8093        Improved the display of select boxes with a specified size
+
+
+Bug fixes:
+
+    TL-6789        Fixed the handling of transactions when exceptions occur within HR Import user sync
+
+                   Prior to this patch, if an exception was generated while assigning user
+                   positions, the exception would be handled and processing would continue.
+                   However, if the exception occurred within a database transaction, the
+                   transaction was not being cleaned up.
+
+    TL-7355        Managers approving Face-to-face booking requests are now notified of the updates success
+
+                   Previously, when a manager approved staff requests for bookings into a
+                   Face-to-face session, they would then be redirected to a page saying 'You
+                   can not enrol yourself in this course' (assuming they were not enrolled or
+                   did not have other permissions to view the attendees page). Following any
+                   approvals (by a manager or any other user), the page will now refresh onto
+                   the approval required page, with a message confirming the update was
+                   successful.
+
+    TL-7426        Fixed the course completion status of users after their RPL is deleted
+
+                   Previously their completion would not be re-aggregated until they made
+                   further progress in the course, now it is re-aggregated immediately.
+
+    TL-7504        Updated the permissions for the unobscured user email column in Report builder reports
+
+                   Previously the unobscured user email column and filter were only shown when
+                   email was turned on in user identity settings, now it is also shown if the
+                   user has the site:config capability. This ensures that the admin can use
+                   these columns regardless of the user identity setting.
+
+    TL-7521        Fixed values for position start and end dates when syncing with database source
+
+                   If an external database that was being synced via HR Import contained a
+                   Null value for position start date and position end date, this was throwing
+                   an error. Null values will now mean that no value will be added to the
+                   position details.
+
+                   In addition to this, if a position start or end date field contained the
+                   value 0, the value added into the position details in Totara would be the
+                   current time. This has been changed such that 0 and null are equivalent and
+                   result in no value being added to the position details. This is consistent
+                   with imports via CSV.
+
+    TL-7620        Fixed the display of defaults for text input custom fields in Report builder
+    TL-7712        Fixed an issue with assigning a large number of users to programs
+
+                   Previously when a large number of individuals were already assigned to a
+                   program, adding more assignments could lead to an HTTP 414 error due to a
+                   large amount of data being included in the URL.
+
+    TL-7729        Replaced hardcoded strings with lang strings in the old program catalog
+    TL-7731        Fixed the display of non-latin characters in program summaries when viewing Report builder reports
+    TL-7781        Fixed pop-up behaviour for admins using a single-activity course with a file
+    TL-7842        Fixed stuck certification completions due to a bug previously fixed in TL-6979
+
+                   Certifications which experienced the problem which was fixed in TL-6979
+                   would be stuck after upgrading. This patch will repair those records by
+                   triggering the window open event again. The records will be in the correct
+                   state after installing the upgrade and then running the Update
+                   Certifications scheduled task.
+
+    TL-7879        Stopped Program un-enrolment messages being sent to suspended users
+    TL-7904        Fixed Terms & Conditions dialog box for Face-to-face direct enrolment plugin
+    TL-7911        Fixed the restoration of certificate user information on different sites
+    TL-7915        Added missing include to the Competency Status History report source
+    TL-7917        Fixed the "User is suspended" dynamic audience rule when it is used more than once in the same rule set
+    TL-7925        Fixed an issue with duplicate grade items when using the assignment submissions report source
+    TL-7927        Fixed SCORM activities set to "display package" in the "new window (simple)" mode
+    TL-7931        Fixed the booked-by & actioned columns in Face-to-face session report sources
+
+                   The columns now display the actual user name and link instead of the
+                   "Reserved" word for the "Booked by" and "Actioned by" columns.
+
+    TL-7953        Stopped the surround legend style from being applied to child elements in Totara themes
+    TL-7965        Fixed consecutive usage of the Face-to-face attendees menu option
+
+                   Previously after adding or removing users via the attendees page, you would
+                   have to refresh the page before it would work again.
+
+    TL-7966        Replaced hardcoded "Advanced options" string with a translatable string in Report builder
+    TL-7971        Corrected the positioning of short form date pickers for rtl languages
+    TL-7980        Fixed the deletion of scheduled reports
+    TL-7997        Fixed the shortname field for Goal types
+    TL-8010        Removed unformatted html from output when exporting a user's Record of Learning to PDF
+    TL-8026        Fixed the display of Face-to-face session details within Calendar events
+    TL-8048        Fixed the sidebar filter for Report builder reports with paging
+
+                   When a sidebar filter is changed, you will be taken back to the first page
+                   of results (as happens with other search and filters). This patch also
+                   fixes a problem which occurred if the toolbar search was used immediately
+                   after using a sidebar filter.
+
+    TL-8050        Prevent the deletion of unrelated scheduled report recipients when deleting a scheduled report
+
+                   Previously if the ID of the scheduled report being deleted matched the ID
+                   of a Report builder report, all recipients for scheduled reports based off
+                   that report would also be incorrectly deleted.
+
+    TL-8121        Corrected the display of certification due dates when exporting to pdf
+
+
+Contributions:
+
+    * Artur Rietz at Webanywhere - TL-8010
+    * Chris Wharton at Catalyst NZ and Haitham Gasim at Kineo USA - TL-7980
+    * Haitham Gasim at Kineo USA - TL-8026
+    * Pavel Tsakalidis at Kineo UK - TL-7975
+    * Tim Price at Catalyst Australia - TL-7911
+
+
+Release 2.9.1.1 (9th December 2015):
+====================================
+
+
+Bug fixes:
+
+    TL-8096        Fixed course module completion calculation
+
+                   This fixes a regression introduced by TL-6981 in 2.9.1, 2.7.9, 2.6.26, and
+                   2.5.33 in which the calculation of course module completion would lead to
+                   all activities being marked complete incorrectly for a user.
+                   The problem occurs when the user completes the first activity in the
+                   course. It occurs if the user manually marks themselves complete, achieves
+                   the completion criteria (with the exception of "Student must view this
+                   activity to complete it"), or is marked complete by a trainer. The user
+                   must then log out and log back in again in order to see the problem.
+                   The problem will not occur if it is not the first activity in the course.
+                   When this occurs all activities in the course will be marked complete,
+                   regardless of which section or order they are within the course and
+                   regardless of whether they are required for course completion or not.
+
+
 Release 2.9.1 (16th November 2015):
 ==================================================
 

@@ -497,6 +497,11 @@ class core_admin_renderer extends plugin_renderer_base {
         $output = '';
         $output .= $this->header();
 
+        // Totara: hack the version list to display our version numbers 9.0 and above.
+        if (isset($versions['3.0'])) {
+            $versions['3.0'] = str_replace('3.0', '9.0', $versions['3.0']);
+        }
+
         // Print the component download link
         /* No env updates in Totara yet
         $output .= html_writer::tag('div', html_writer::link(
@@ -1580,6 +1585,10 @@ class core_admin_renderer extends plugin_renderer_base {
                 if ($environment_result->getPart() == 'custom_check'){
                     $otherdata[$messagetype][] = array ($info, $report, $plugin, $status);
                 } else {
+                    if ($type === 'moodle' and !empty($CFG->totara_release)) {
+                        $type = 'totara';
+                        $report = str_replace($CFG->release, $CFG->totara_release, $report);
+                    }
                     $serverdata[$messagetype][] = array ($type, $info, $report, $plugin, $status);
                 }
             }

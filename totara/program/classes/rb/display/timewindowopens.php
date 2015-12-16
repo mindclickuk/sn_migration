@@ -78,6 +78,11 @@ class timewindowopens extends \totara_reportbuilder\rb\display\base {
             }
         }
 
+        if ($format !== 'html') {
+            $out .= $extra;
+            return parent::to_plaintext($out, true);
+        }
+
         if (!empty($extra)) {
             // Can't use html_writer due to namespace issues
             $out .= '<br />' . $extra;

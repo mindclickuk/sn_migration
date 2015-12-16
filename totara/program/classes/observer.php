@@ -41,7 +41,12 @@ class totara_program_observer {
         try {
             $messagesmanager = prog_messages_manager::get_program_messages_manager($programid);
             $program = new program($programid);
+
             $user = $DB->get_record('user', array('id' => $userid));
+            if (empty($user) || $user->suspended) {
+                return true; // Do not send to invalid or suspended users.
+            }
+
             $isviewable = $program->is_viewable($user);
             $messages = $messagesmanager->get_messages();
         } catch (ProgramException $e) {
