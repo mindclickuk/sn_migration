@@ -1179,6 +1179,8 @@ class core_course_renderer extends plugin_renderer_base {
      */
     protected function coursecat_coursebox(coursecat_helper $chelper, $course, $additionalclasses = '') {
         global $CFG;
+        require_once($CFG->dirroot . '/totara/coursecatalog/lib.php');
+        
         if (!isset($this->strings->summary)) {
             $this->strings->summary = get_string('summary');
         }
